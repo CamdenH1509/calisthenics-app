@@ -1,0 +1,837 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Calisthenics">
+<link rel="apple-touch-icon" href="data:image/png;base64,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mzfPb968efPmzVu0+Pqb5s3z8/Pzmzdv3qhRwyr/H83MzMzNrZWRkbPt/6iSktIVK5avWLFy6dIvFi9evHjxkiVLlixevOSr7xcvXlxSUrLt/ysASZRZr1690BsACCY3N7egoE1hYWFBQZvCwoLCwsJWrVo2b57ftGnTWrXSfJvoihUrFy5cOGfO3Llz586bN/+rb+bPXyAMgNQTAACxaNq0adu2hQUFbQoKCtq2LSgoKCgsLNxxxxaZmZmhp9UUFRUVixcvmTt37uzZ//700xkzZsycMWPGwoWLKisrQ08DqDICACCd6tSp06HD7h07dthjj06dOnXs1Klj06ZNQ49KpLVr186YMfOrGJgxY+aHH348f/780KMAtp4AAEiDzMzMNm3a7LFHx44dO371dZdd2qb7Hp6AVq4smj59+rRp06dP/3DatOmzZ/+7oqIi9CiAzSUAAJIqPz+/e/eu3bt3696925577lG/fv3QiyK1du3ajz76eOrU6e+///7Eie/Nmzcv9CKA7yMAABIjKyurU6eO++7bvVu3rt27dy0oKAi9iI1YunTppEnvT5r03sSJk6ZOneapYqCmEQAANdoOOzTu3r37V6/0d+68jx/ayVJSUjJ16vSJEyeOG/f2hAnvrFmzJvQiAAEAUPPk5OR069b10EN7HXJIr733/oFb+dOhrKxs8uSp48aNGzt2/MSJkzZs2BB6ERApAQBQU+y6a7tDDul5yCGH9OhxoBv6023Dhg2TJr03duz4N998a/LkKZ4hBqqTAAAIqXHjRj179jz00F69evVs3bpV6DkEsGzZsldfff2VV159/fU3Vq4sCj0HSD8BABBAy5Y79+nTu1+/Pvvu290dPnylvLz8vffef+WVV19++dWPPvo49BwgtQQAQPUpKCjo169P3769u3Tp7PN3+R6LFn0+atSLL7ww8p133i0vLw89B0gVAQCw3e222659+/Y5+ui+e+65R+gtJMyyZctGj37p+edHjh07rrS0NPQcIA0EAMD20rFjh5/8pF/fvn1237196C0kXnFx8UsvvfzCCyNfe+2N9evXh54DJJgAAKhijRo1PP7440455aR99tk79BZSaPXq1S+8MOqpp0aMHTve3UHAVhAAAFWjVq1aPXv2OOWUk/v0Oap27dqh55B+S5YsefrpZ4cPHzF16rTQW4AkEQAA26pNmzannnrSSSed2KpVy9BbiNGsWbOHDx8xfPiIuXPnht4CJIAAANhKdevW7devzymnnHTQQQd6Sx+Cq6ysfPvtCY8++vjzz4/0McPA9xAAAFts5513Ovfcc/r3P71x40aht8B3rVxZNHz4iEceefTjjz8JvQWoiQQAwBbo0qXzhRf+rF+/PtnZ2aG3wCZMnjzl0UcfHzHimdWrV4feAtQgAgBg07Kysvr06X3hhed3794t9BbYMmvXrh027Kn773/gk0/+FXoLUCMIAIDv07Bhw9NPP/W8885p3bpV6C2wTcaNG3///Q+MHv2SNw+FyAkAgI1r3brVRRddeMopJ9WvXz/0FqgyCxYsfPDBhx555LHly1eE3gKEIQAAvqtVq5aXX37pqaeenJOTE3oLbBcbNmwYMeKZQYOGfPTRx6G3ANVNAAB8Y+edd7r88ktPO+3U3FyX/kTh9dffuOuuf4wdOy70EKD6CACAjIyMjB13bHHZZZf2739abm5u6C1Q3aZMmXr33QNfeGGkxwMgBgIAiF2LFi0uu+zi/v1Pr127dugtENKcOXMGDhz8+OND169fH3oLsB0JACBe+fn5l1128Vln9XfpD/+xbNmyQYPuu+++f65atSr0FmC7EABAjHJzcy+88PwrrrisQYMGobdATbRyZdG99w4eMuT+4uLi0FuAKiYAgOj07dv7xhuvb9OmTeghUNMVFRUPGjRk0KAhMgDSRAAAEdlzzz0GDLjpwAMPCD0EkqS4+OsMKCqSAZAGAgCIQn5+/m9/++tTTz25Vq1aobdAIhUXF5922pnvvPNu6CHAtvIHIZByubk5l1xy0bvvjjv99FNd/cNWa9iwYevWrUKvAKpAdugBANvRYYf9+I9/vKmwsDD0EACoKQQAkE5NmjT54x9vPv74Y0MPAYCaxWk4kELHH3/shAlvufoHgP+fEwAgVVq23Pm222457LAfhx4CADWUEwAgJTIzM88++8xx495w9Q8A38MJAJAG7drtcscdt++//36hhwBATecEAEi2WrVqXXrpL95881VX/wCwOZwAAAm28847DRx4t0/2BYDN5wQASKqjjjrijTdedfUPAFvECQCQPLVr177ppt+fc85ZoYcAQPIIACBhOnTYffDggR07dgg9BAASyS1AQJKceeYZL7882tU/AGw1JwBAMjRu3Ohvf7u9b9/eoYcA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8dBDj8T5octANRAAwEbUr1//9ttvDb2CrbdgwcJzz73gmGNOmDTp/dBb2GLTpk3/1a9+vcce+1x55dUzZswMPQdIGwEAbMR11/3GO/8k1Pr16//yl78ecMDBzz33fOgtbJO1a9c+/PCjPXoccvLJp7/xxluh5wDpIQCA7+rSpfM555wVegVb44UXRh14YM8///kv69evD72FqlFZWfnqq6/99Kcn9+z5w8cfH1pSUhJ6EZB4AgD4llq1at166598SlHiLFmy5Iwzzjr77PPmz18QegvbxSef/Ouyy365997dbrvt9mXLloWeAySYP+OBbznrrP577/2D0CvYMsOHj+jR45AXXxwTegjb3Zdffnnrrbd37rzv9dffuGTJktBzgEQSAMA3mjVr9tvfXhN6BVvgqxf+f/7zi1euLAq9heqzbt26gQMHde26/zXXXLtw4aLQc4CEEQDAN37/++saNWoYegWb6+mnn/XCf8w2bNhw//0P7LvvAb/85VXz5s0LPQdIDAEAfK1r1y4nnfTT0CvYLBs2bPjVr379s5/93Av/lJSUPvLIY/vt1+OSSy7/7LM5oecACSAAgK/94Q83ZmZmhl7Bpn322Zwjj+z70EOPhB5CDVJWVjZ06JMHHtjzqquu8WwA8P0EAJCRkZFx/PHHduvWNfQKNu3ZZ5/70Y+O+PDDj0IPoSYqKyt78MGHu3c/cMCAW4qLi0PPAWooAQBk1KlT53e/uzb0CjahrKzsN7+57rzzLly1alXoLdRo69atu+OOO7t12/+eewZu2LAh9BygxhEAQMYvfvHzli13Dr2C71NcXHzqqWfcd98/Qw8hMVasWHnDDTfvu++Bjz32P+Xl5aHnADWIAIDYNWvW7JJLLgq9gu8zb9683r2Pfv31N0MPIXkWLfr88suvPOSQH7/55tjQW4CaQgBA7K688vL69euHXsF/NWnSe4cf3ufTT2eEHkKC/etfn55wwklnnnnOnDlzQm8BwhMAELXWrVv3739G6BX8V08//ewxx5ywbNmy0ENIg1GjXjzooEP+8Ic/rl69OvQWICQBAFG75pqrcnNzQq9g4x588OELLriopKQk9BDSo6Sk5O9/v3u//XoMHfpEZWVl6DlAGAIA4tWxY4cTTjgu9Ao27p57Bl511TUu0dgeli5desklVxx+eO/33/8g9BYgAAEA8br66itr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HwxcY5199pkDB96dm5sbegjpkZubc8klF02cOP7UU0+uVcs1AETKb36I2mefzXn00cdDr+C/Ov74Y59+eliTJk1CDyENjjzy8HHj3rz++usaNGgQegsQkgCA2P3lL39bt25d6BX8V/vu233MmJHt2+8WeggJtvvu7YcNG/rIIw96nx8gQwAAS5YsGThwUOgVfJ+CgoLRo5/v1evg0ENInp122vGvf73tjTdeOeSQnqG3ADWFAAAy/v73uxcvXhJ6Bd+nYcOGQ4c+5mPC2HyNGze6/vrrJk58+4wzTsvOzg49B6hBBACQsXbt2gEDbgm9gk3Izs6+5ZYBgwcPdAM3369OnTqXXXbxe++9e8klF9WpUyf0HKDGEQBARkZGxhNPPDl16rTQK9i0Y4/9ySuvvLjHHp1CD6Emys7O7t//9EmTJlx33W+9uz/w3wgAICMjI6OysvLaa68PvYLN0q7dLi+9NPKMM04LPYQaJCsr68QTTxg//s3bb791xx1bhJ4D1GgCAPjau+9OfOqpp0OvYLPUrl37r3+9bdCgfzRu3Cj0FgLLyck57bRT3nln7D333LnLLm1DzwESQAAA37j++htXrVoVegWb67jjjhk37o3DDz8s9BDCyM3NPfvsMydOfPuOO24vLCwMPQdIDAEAfGPp0qW33HJb6BVsgRYtWjz22EN33/13RwFRqVOnzs9+dt777797661/atWqZeg5QMIIAOBb7r//gY8++jj0CrbMSSf91FFAJJo2bXrllVdMnjxxwICb3OsPbB0BAHxLeXn5VVddU1lZGXoIW+aro4B//nOw14PTqn373f7619umTn3vmmuuatasWeg5QIIJAOC7Jk1678EHHw69gq3Rr1/fCRPGXnXVld79PU0OOaTnE088Nm7cG2eccVrt2rVDzwESTwAAG3HTTQMWLfo89Aq2Rp06da6++sq3336rb98+obewTerWrXvaaae89dZrw4YN/eEPD83MzAy9CEgJAQBsxOrVq6+66prQK9h6rVu3euCBIU8/Paxbt66ht7DFOnXqeMstAz78cPIdd9zesWOH0HOAtBEAwMaNGfPyiBHPhF7BNunR46DRo59//PGHf/CDvUJvYdPq1at36qknv/jiC2+++eq5557dsKGP8gW2i8x69eqF3gDUUE2bNh0//o2mTZuGHkIVGDly9J///JdPPvkk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0bHH/nTAgD/5oAAA2EwCAEi28vLyO+64q1evH7377sTQWwAgAQQAkAazZs3u1+/YX//6t6tXrw69BQBqNAEApERlZeU///lgjx6HvPLKq6G3AEDNJQCAVFm4cNEpp5zx859fvHz58tBbAKAmEgBACg0fPuLAA3uNGPFM6CEAUOMIACCdli1bdsEFF516av+5c+eG3gIANYgAANLs5ZdfOfDAXjffPMDDwQDwFQEApFxJScmdd96z774HPfbY/1RUVISeA0lVXFw8f/6C0CuAKpBZr1690BsAqslee+05YMBNBxywf+ghkCTFxcWDB993772Di4qKQ28BqoAAAKLTr1/fG2/8XevWrUMPgZquqKh48OAhgwYNcekPaSIAgBjl5uZedNEFl19+af369UNvgZqoqKh40KAhgwYNKS526Q9pIwCAeOXn519xxaX9+59eu3bt0Fugpli+fPngwfcPGXK/S39IKwEAxG7HHVtcdtml/fuflpubG3oLhDRv3ryBAwc99tjQdevWhd4CbEcCACAjIyNjp512vPzyS08//bTc3JzQW6C6TZs2/e67//Hccy+Ul5eH3gJsdwIA4BstW+58xRWXnXLKyTKASLzxxlt3333Pm2+ODT0EqD4CAOC7WrdudcUVl5188ok5OTKAdCopKRkx4plBg4Z8+OFHobcA1U0AAGxc69atf/GLC0855SQ/J0mTRYs+f+CBhx5++NHly5eH3gKEIQAAvk+jRg3POOP08847p2XLnUNvgW0yYcI7Q4b8c/ToF8vKykJvAUISAACblp2d3bdv7wsuOL9bt66ht8CWWbdu3VNPPT1kyP0ff/xJ6C1AjSAAALZAt25dL7zw/D59emdnZ4feApswbdr0Rx99fPjwEatWrQq9BahBBADAFmvZcufzzjvnjDNOb9SoYegt8F1FRcVPPTXikUce84AvsFECAGAr1a1b9yc/6XfKKScdcMD+mZmZoedAxoQJ7zz66OPPPffC+vXrQ28Bai4BALCtCgsLTznlxJNOOtGDwgTx739/Nnz4iOHDn/rsszmhtwAJIAAAqkatWrV69Tr41FNP6d37yNzc3NBzSL8vvvjimWeeGz58xAcfTA69BUgSAQBQxRo3bnT88cedcspJe+/9g9BbSKG1a9eOGvXisGFPvfnmW+Xl5aHnAMkjAAC2l44dOxxzzNF9+/Zp33630FtIvNWrV7/88qvPPz/ylVdeXbduXeg5QIIJAIDtrn373fr169uvX5899ugUegsJs2LFypdeeun550e98cabJSUloecAaSAAAKpPYWHh0Uf36du3T+fO+4TeQo22ZMmS0aNfeuGFkePHT/DBvUDVEgAAAbRq1bJv3z79+vXp1q1rrVq1Qs+hRqioqPjgg8mvvPLaK6+8Om3a9MrKytCLgHQSAAAhNWmyQ8+eBx966CG9evX0LqJxWrFi5RtvvPnyy6+8+urry5cvDz0HSD8BAFBTtG+/W69ePQ89tNeBBx5Qv3790HPYjkpKSidPnjx27LjXX3/z/fc/8GY+QHUSAAA1Tm5uTvfu3Q85pNehh/baa6893SOUDuXl5dOnfzh27PixY8e988673skHCEUAANRoTZrssO++3bt167bvvt322WfvunXrhl7EFigtLf3oo48nTpw0btz48eMnFBcXh14EIAAAkiM7O3uPPTp1796te/du3bt3bd26dehFbMTy5cvfe+/9SZPemzjxvQ8+mLx+/frQiwC+RQAAJFWLFi26d+/avXu3bt267rnnHn6eh7Jhw4aPP/5k6tRp778/edKkSbNn/zv0IoDvIwAA0iAzM7OwsKBTp46dOnXq1KlDp06dCgsLPDywnaxaterDDz+aPv3DadOmT5v24YwZMzzFCySIAABIp7p163bosHunTh3/81eTJk1Cj0qk9evXz5o1e8aMmZ9+OmPGjBkfffTxnDlzvUk/kFwCACAWTZs23WWXwoKCgsLCwoKCNm3bFhYUFLRo0TwzMzP0tJqisrJy6dKlc+fOmz373/97xT9z/vz5FRUVoacBVBkBABC12rVrFxYWFBQUFBZ+/VfLli1btGi+ww47pPsOopUrixYtWjRnzty5c+fOmzdvzpx58+bNmzt33oYNG0JPA9i+BAAAG5GVlZWf36z51/KbN2/eosXX3+Tn5zdvnp+Xlxd64/cpLS1duXLl8uUrvvjii8WLlyxevHjJkqWLFy9evHjJV7/05jxAtAQAAFsjNzcnL69hXl5eXl6D//P1628afPWlQYMGDRrUrVsnOzs7Ozs7Jyc7Kys7JycnOzsrO/ubrzk5OVlZWdnZ2RkZGWVlZRUVFWVlZeXl5WVl5RUV5WVl5eXl5SUlJevWrVuzZu3atWvXrVu39v9Ys2ZNUVHx8uUrVq5csWLFyhUrVqxYsXL16tWh/w0B1FACAAAAIpLm+zsBAIDvEAAAABARAQAAABERAAAAEBEBAAAAEREAAAAQEQEAAAAREQAAABARAQAAABERAAAAEBEBAAAAEREAAAAQEQEAAAAREQAAABARAQAAABERAAAAEBEBAAAAEREAAAAQEQEAAAAREQAAABARAQAAABERAAAAEBEBAAAAEREAAAAQEQEAAAAREQAAABARAQAAABERAAAAEBEBAAAAEREAAAAQEQEAAAAREQAAABARAQAAABERAAAAEBEBAAAAEREAAAAQEQEAAAAREQAAABARAQAAABERAAAAEBEBAAAAEREAAAAQEQEAAAAREQAAABARAQAAABERAAAAEBEBAAAAEREAAAAQEQEAAAAREQAAABARAQAAABERAAAAEBEBAAAAEREAAAAQEQEAAAAREQAAABARAQAAABERAAAAEBEBAAAAEREAAAAQEQEAAAAREQAAABARAQAAABERAAAAEBEBAAAAEREAAAAQEQEAAAAREQAAABARAQAAABERAAAAEBEBAAAAEREAAAAQEQEAAAAREQAAABARAQAAABERAAAAEBEBAAAAEREAAAAQEQEAAAAREQAAABARAQAAABERAAAAEBEBAAAAEREAAAAQEQEAAAAREQAAABARAQAAABERAAAAEBEBAAAAEREAAAAQEQEAAAAREQAAABARAQAAABERAAAAEBEBAAAAEREAAAAQEQEAAAAREQAAABARAQAAABERAAAAEBEBAAAAEREAAAAQEQEAAAAREQAAABARAQAAABERAAAAEBEBAAAAEREAAAAQEQEAAAAREQAAABARAQAAABERAAAAEBEBAAAAEREAAAAQEQEAAAAREQAAABARAQAAABERAAAAEBEBAAAAEREAAAAQEQEAAAAREQAAABARAQAAABERAAAAEBEBAAAAEREAAAAQEQEAAAAREQAAABARAQAAABERAAAAEBEBAAAAEREAAAAQEQEAAAAREQAAABARAQAAABERAAAAEBEBAAAAEREAAAAQEQEAAAAREQAAABARAQAAABERAAAAEBEBAAAAEREAAAAQEQEAAAAREQAAABARAQAAABERAAAAEBEBAAAAEREAAAAQEQEAAAAREQAAABARAQAAABERAAAAEBEBAAAAEREAAAAQEQEAAAAREQAAABARAQAAABERAAAAEBEBAAAAEREAAAAQEQEAAAAREQAAABARAQAAABERAAAAEBEBAAAAEREAAAAQEQEAAAAREQAAABARAQAAABERAAAAEBEBAAAAEREAAAAQEQEAAAAREQAAABARAQAAABERAAAAEBEBAAAAEREAAAAQEQEAAAAREQAAABARAQAAABERAAAAEBEBAAAAEREAAAAQEQEAAAAREQAAABARAQAAABERAAAAEBEBAAAAEREAAAAQEQEAAAAREQAAABARAQAAABERAAAAEBEBAAAAEREAAAAQEQEAAAAREQAAABARAQAAABERAAAAEBEBAAAAEREAAAAQEQEAAAAREQAAABARAQAAABERAAAAEBEBAAAAEREAAAAQEQEAAAAREQAAABARAQAAABERAAAAEBEBAAAAEREAAAAQEQEAAAAREQAAABARAQAAABERAAAAEBEBAAAAEREAAAAQEQEAAAAREQAAABARAQAAABERAAAAEBEBAAAAEREAAAAQEQEAAAAREQAAABARAQAAABERAAAAEBEBAAAAEREAAAAQEQEAAAAREQAAABARAQAAABERAAAAEBEBAAAAEREAAAAQEQEAAAAREQAAABARAQAAABERAAAAEBEBAAAAEREAAAAQEQEAAAAREQAAABARAQAAABERAAAAEBEBAAAAEREAAAAQEQEAAAAREQAAABARAQAAABERAAAAEBEBAAAAEREAAAAQEQEAAAAREQAAABARAQAAABERAAAAEBEBAAAAEREAAAAQEQEAAAAREQAAABARAQAAABERAAAAEBEBAAAAEREAAAAQEQEAAAAREQAAABARAQAAABERAAAAEBEBAAAAEREAAAAQEQEAAAAR+X/BHB/r/QIqEQAAAABJRU5ErkJggg==">
+<title>Calisthenics</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Archivo+Black&family=Inter:wght@300;400;500;600;700;900&display=swap');
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  html, body {
+    background: #0a0a0a;
+    color: #f0ede8;
+    font-family: 'Inter', -apple-system, sans-serif;
+    height: 100%;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+    user-select: none;
+  }
+
+  #app {
+    min-height: 100vh;
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+    display: flex;
+    flex-direction: column;
+  }
+
+  button {
+    font-family: inherit;
+    border: none;
+    background: none;
+    color: inherit;
+    cursor: pointer;
+  }
+
+  .topbar {
+    padding: 18px 20px 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #1c1c1c;
+  }
+
+  .brand {
+    font-family: 'Archivo Black', sans-serif;
+    font-size: 17px;
+    letter-spacing: 0.5px;
+  }
+
+  .brand span { color: var(--accent); }
+
+  .phase-pill {
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 5px 10px;
+    border: 1px solid #2a2a2a;
+    color: #888;
+  }
+
+  .phase-nav {
+    display: flex;
+    gap: 6px;
+    padding: 14px 20px;
+    overflow-x: auto;
+  }
+  .phase-nav::-webkit-scrollbar { display: none; }
+
+  .phase-btn {
+    flex: 1;
+    padding: 12px 8px;
+    text-align: center;
+    border: 1px solid #222;
+    border-radius: 10px;
+    transition: all 0.2s;
+  }
+  .phase-btn .pnum { font-size: 9px; letter-spacing: 0.1em; color: #555; text-transform: uppercase; }
+  .phase-btn .pname { font-size: 13px; font-weight: 600; margin-top: 3px; }
+  .phase-btn.active { border-color: var(--accent); background: rgba(255,255,255,0.03); }
+  .phase-btn.active .pnum { color: var(--accent); }
+
+  .day-nav {
+    display: flex;
+    overflow-x: auto;
+    padding: 0 20px;
+    gap: 0;
+    border-bottom: 1px solid #1c1c1c;
+  }
+  .day-nav::-webkit-scrollbar { display: none; }
+
+  .day-btn {
+    padding: 14px 14px;
+    font-size: 12px;
+    letter-spacing: 0.04em;
+    color: #555;
+    white-space: nowrap;
+    border-bottom: 2px solid transparent;
+    position: relative;
+  }
+  .day-btn.active { color: #f0ede8; border-bottom-color: var(--accent); font-weight: 600; }
+  .day-btn .done-dot {
+    width: 5px; height: 5px; border-radius: 50%;
+    background: var(--accent); display: inline-block; margin-left: 5px;
+  }
+
+  .main {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px 20px 100px;
+  }
+
+  .day-header { margin-bottom: 18px; }
+  .day-header .label { font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: #555; }
+  .day-header .name { font-family: 'Archivo Black', sans-serif; font-size: 26px; margin-top: 2px; }
+  .day-header .focus { font-size: 12px; color: var(--accent); text-transform: uppercase; letter-spacing: 0.06em; margin-top: 4px; font-weight: 600; }
+
+  .progress-bar-wrap {
+    margin-top: 14px;
+    height: 4px;
+    background: #1c1c1c;
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  .progress-bar-fill {
+    height: 100%;
+    background: var(--accent);
+    transition: width 0.3s ease;
+  }
+
+  .streak-badge {
+    margin-top: 10px;
+    font-size: 11px;
+    color: #666;
+    letter-spacing: 0.02em;
+  }
+
+  .ex-card {
+    border: 1px solid #1c1c1c;
+    border-radius: 14px;
+    margin-bottom: 12px;
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+  .ex-card.complete { border-color: #2a3a2a; background: rgba(80,200,120,0.04); }
+
+  .ex-main {
+    padding: 16px 16px 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .ex-info { flex: 1; }
+  .ex-name-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .ex-name { font-size: 15.5px; font-weight: 600; }
+  .ex-tag {
+    font-size: 9px; letter-spacing: 0.08em; text-transform: uppercase;
+    background: var(--accent); color: #0a0a0a; padding: 2px 6px; border-radius: 4px; font-weight: 700;
+  }
+  .ex-note { font-size: 12px; color: #666; margin-top: 4px; line-height: 1.5; }
+  .ex-sets-label { font-size: 12px; color: #888; white-space: nowrap; padding-top: 2px; font-weight: 500; }
+
+  .set-row {
+    display: flex;
+    gap: 6px;
+    padding: 0 16px 16px;
+    flex-wrap: wrap;
+  }
+
+  .set-chip {
+    flex: 1;
+    min-width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    border: 1px solid #2a2a2a;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 600;
+    color: #555;
+    transition: all 0.15s;
+  }
+  .set-chip.done {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #0a0a0a;
+  }
+  .set-chip.timed {
+    flex-direction: column;
+    gap: 1px;
+    font-size: 10px;
+  }
+  .set-chip.timed .t { font-size: 13px; font-weight: 700; }
+
+  .timer-overlay {
+    position: fixed;
+    inset: 0;
+    background: #0a0a0a;
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: env(safe-area-inset-top) 24px env(safe-area-inset-bottom);
+  }
+
+  .timer-close {
+    position: absolute;
+    top: calc(env(safe-area-inset-top) + 20px);
+    right: 20px;
+    font-size: 13px;
+    color: #555;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 8px;
+  }
+
+  .timer-kind {
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+  .timer-exname {
+    font-size: 18px;
+    font-weight: 600;
+    text-align: center;
+    margin-bottom: 40px;
+    color: #999;
+  }
+
+  .timer-ring-wrap { position: relative; width: 260px; height: 260px; }
+  .timer-ring-wrap svg { transform: rotate(-90deg); }
+  .timer-num {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Archivo Black', sans-serif;
+    font-size: 64px;
+  }
+
+  .timer-controls {
+    display: flex;
+    gap: 16px;
+    margin-top: 48px;
+  }
+
+  .timer-btn {
+    width: 64px; height: 64px;
+    border-radius: 50%;
+    border: 1px solid #2a2a2a;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px;
+  }
+  .timer-btn.primary {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #0a0a0a;
+    width: 80px; height: 80px;
+    font-size: 24px;
+  }
+
+  .timer-skip {
+    margin-top: 28px;
+    font-size: 12px;
+    color: #555;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 10px 20px;
+  }
+
+  .rest-view { text-align: center; padding: 80px 20px; }
+  .rest-icon { font-size: 40px; opacity: 0.15; margin-bottom: 16px; }
+  .rest-title { font-family: 'Archivo Black', sans-serif; font-size: 24px; color: #444; }
+  .rest-sub { font-size: 13px; color: #444; margin-top: 8px; }
+
+  .footer-action {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    padding: 14px 20px calc(14px + env(safe-area-inset-bottom));
+    background: linear-gradient(to top, #0a0a0a 70%, transparent);
+  }
+  .complete-btn {
+    width: 100%;
+    padding: 16px;
+    border-radius: 14px;
+    background: var(--accent);
+    color: #0a0a0a;
+    font-weight: 700;
+    font-size: 14px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  .install-banner {
+    margin: 0 20px 16px;
+    padding: 12px 14px;
+    border: 1px solid var(--accent);
+    border-radius: 10px;
+    font-size: 12px;
+    color: #ccc;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+  }
+  .install-banner b { color: var(--accent); }
+  .install-x { color: #555; font-size: 16px; padding: 4px; }
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<script>
+const PHASES = [
+  {
+    id: 1, name: "Foundation", weeks: "Weeks 1–4", accent: "#e74c3c",
+    days: [
+      { day: "Monday", name: "Push", focus: "Chest · Shoulders · Triceps", exercises: [
+        { name: "Pike Push-up", type: "reps", sets: 4, target: "10", note: "Hands shoulder-width, hips high" },
+        { name: "Push-up", type: "reps", sets: 4, target: "20", note: "Full range, chest to floor" },
+        { name: "Diamond Push-up", type: "reps", sets: 3, target: "12", note: "Tricep focus" },
+        { name: "Wide Push-up", type: "reps", sets: 3, target: "15", note: "Chest spread" },
+        { name: "Wall Handstand Hold", type: "timed", sets: 5, duration: 20, tag: "SKILL", note: "Back to wall, kick up and hold" },
+      ]},
+      { day: "Tuesday", name: "Pull", focus: "Back · Biceps · Rear Delts", exercises: [
+        { name: "Pull-up", type: "reps", sets: 5, target: "max", note: "Dead hang start every rep" },
+        { name: "Chin-up", type: "reps", sets: 4, target: "6", note: "Supinated grip, full contraction" },
+        { name: "Scapular Pull-up", type: "reps", sets: 3, target: "12", note: "No arm bend, retract shoulder blades" },
+        { name: "Inverted Row", type: "reps", sets: 4, target: "12", note: "Use table or low bar" },
+        { name: "Dead Hang", type: "timed", sets: 3, duration: 45, tag: "SKILL", note: "Grip strength and shoulder health" },
+      ]},
+      { day: "Wednesday", name: "Core", focus: "Abs · Obliques · Stability", exercises: [
+        { name: "Hanging Knee Raise", type: "reps", sets: 4, target: "15", note: "Control the swing" },
+        { name: "Hollow Body Hold", type: "timed", sets: 4, duration: 30, note: "Lower back pressed flat" },
+        { name: "Plank", type: "timed", sets: 3, duration: 60, note: "Squeeze glutes and abs together" },
+        { name: "Side Plank", type: "timed", sets: 3, duration: 30, note: "Each side, hip stays up" },
+        { name: "L-sit Tuck Hold", type: "timed", sets: 5, duration: 10, tag: "SKILL", note: "Knees tucked to chest, arms locked" },
+      ]},
+      { day: "Thursday", name: "Push (Strength)", focus: "Heavier Variations", exercises: [
+        { name: "Elevated Pike Push-up", type: "reps", sets: 4, target: "10", note: "Feet on chair, loads shoulders more" },
+        { name: "Decline Push-up", type: "reps", sets: 4, target: "15", note: "Upper chest emphasis" },
+        { name: "Archer Push-up", type: "reps", sets: 3, target: "6 ea", note: "One arm takes most load" },
+        { name: "Tricep Dips", type: "reps", sets: 3, target: "15", note: "Elbows back, not flared" },
+        { name: "Wall Handstand Hold", type: "timed", sets: 5, duration: 30, tag: "SKILL", note: "Extend hold time each session" },
+      ]},
+      { day: "Friday", name: "Pull (Strength)", focus: "Back Thickness + Muscle-up Prep", exercises: [
+        { name: "Pull-up", type: "reps", sets: 5, target: "max", note: "Rest 2 min between sets" },
+        { name: "Commando Pull-up", type: "reps", sets: 4, target: "5 ea", note: "Alternate sides, chin over bar" },
+        { name: "Explosive Pull-up", type: "reps", sets: 5, target: "4", tag: "SKILL", note: "Explode up, chest to bar if possible" },
+        { name: "Negative Pull-up", type: "reps", sets: 4, target: "5 slow", note: "5 seconds down, builds tendon strength" },
+        { name: "False Grip Hang", type: "timed", sets: 4, duration: 15, tag: "SKILL", note: "Wrist over bar, uncomfortable at first" },
+      ]},
+      { day: "Saturday", name: "Full Body", focus: "Volume + Conditioning", exercises: [
+        { name: "Pull-up", type: "reps", sets: 3, target: "max", note: "All out" },
+        { name: "Push-up", type: "reps", sets: 3, target: "max", note: "All out" },
+        { name: "Hanging Knee Raise", type: "reps", sets: 3, target: "12" },
+        { name: "Burpee", type: "reps", sets: 4, target: "12", note: "Keep pace honest" },
+        { name: "Pike Push-up", type: "reps", sets: 3, target: "12", note: "Shoulder finisher" },
+      ]},
+      { day: "Sunday", name: "Rest", focus: "Recover. Grow.", rest: true },
+    ]
+  },
+  {
+    id: 2, name: "Development", weeks: "Weeks 5–8", accent: "#3498db",
+    days: [
+      { day: "Monday", name: "Push", focus: "Chest · Shoulders · Triceps", exercises: [
+        { name: "Elevated Pike Push-up", type: "reps", sets: 4, target: "12", note: "Feet on chair" },
+        { name: "Archer Push-up", type: "reps", sets: 4, target: "8 ea", note: "Control the lean" },
+        { name: "Diamond Push-up", type: "reps", sets: 4, target: "15", note: "Elbows tracked back" },
+        { name: "Push-up", type: "reps", sets: 3, target: "25", note: "Tempo: 2 sec down, 1 up" },
+        { name: "Face-to-Wall Handstand Hold", type: "timed", sets: 5, duration: 20, tag: "SKILL", note: "Toes and nose touching wall" },
+      ]},
+      { day: "Tuesday", name: "Pull", focus: "Back · Biceps · Rear Delts", exercises: [
+        { name: "Pull-up", type: "reps", sets: 5, target: "8+", note: "Add backpack weight if hitting 10 easily" },
+        { name: "Chin-up", type: "reps", sets: 4, target: "8", note: "Pause 1 sec at top" },
+        { name: "Typewriter Pull-up", type: "reps", sets: 3, target: "4 ea", note: "Slide side to side at top" },
+        { name: "Inverted Row", type: "reps", sets: 4, target: "15", note: "Elevate feet for more challenge" },
+        { name: "False Grip Pull-up", type: "reps", sets: 5, target: "3", tag: "SKILL", note: "Full pull-up with false grip" },
+      ]},
+      { day: "Wednesday", name: "Core", focus: "Abs · Obliques · L-sit", exercises: [
+        { name: "Hanging Leg Raise", type: "reps", sets: 4, target: "12", note: "Straight legs, controlled" },
+        { name: "Windshield Wiper", type: "reps", sets: 3, target: "10 ea", note: "Bent knee, hang and rotate" },
+        { name: "Hollow Body Hold", type: "timed", sets: 4, duration: 40 },
+        { name: "Pike Rollout", type: "reps", sets: 3, target: "10", note: "On knees is fine" },
+        { name: "L-sit Hold", type: "timed", sets: 5, duration: 15, tag: "SKILL", note: "Legs straight this phase" },
+      ]},
+      { day: "Thursday", name: "Push (Strength)", focus: "Overhead Strength", exercises: [
+        { name: "Wall HSPU Negative", type: "reps", sets: 5, target: "5", tag: "SKILL", note: "Kick up, lower head slowly (5 sec), step down" },
+        { name: "Elevated Pike Push-up", type: "reps", sets: 4, target: "15", note: "Volume after skill work" },
+        { name: "Decline Push-up", type: "reps", sets: 4, target: "20" },
+        { name: "Dips", type: "reps", sets: 4, target: "12", note: "Full depth, slight forward lean" },
+        { name: "Pseudo Planche Push-up", type: "reps", sets: 3, target: "8", note: "Hands by hips, lean forward" },
+      ]},
+      { day: "Friday", name: "Pull (Strength)", focus: "Muscle-up Progression", exercises: [
+        { name: "Weighted Pull-up", type: "reps", sets: 5, target: "5", note: "Backpack with 5–8kg" },
+        { name: "Chest-to-Bar Pull-up", type: "reps", sets: 5, target: "4", tag: "SKILL", note: "Pull until chest touches bar" },
+        { name: "Band-Assisted Muscle-up", type: "reps", sets: 4, target: "4", tag: "SKILL", note: "Band on bar, practice the transition" },
+        { name: "Negative Muscle-up", type: "reps", sets: 3, target: "3", tag: "SKILL", note: "Jump above bar, slowly lower through" },
+        { name: "Commando Pull-up", type: "reps", sets: 3, target: "6 ea" },
+      ]},
+      { day: "Saturday", name: "Full Body", focus: "Volume + Weak Points", exercises: [
+        { name: "Pull-up", type: "reps", sets: 4, target: "max" },
+        { name: "Dips", type: "reps", sets: 4, target: "max" },
+        { name: "Hanging Leg Raise", type: "reps", sets: 4, target: "12" },
+        { name: "Archer Push-up", type: "reps", sets: 3, target: "8 ea" },
+        { name: "Burpee", type: "reps", sets: 4, target: "15" },
+      ]},
+      { day: "Sunday", name: "Rest", focus: "Recover. Grow.", rest: true },
+    ]
+  },
+  {
+    id: 3, name: "Mastery", weeks: "Weeks 9–12+", accent: "#2ecc71",
+    days: [
+      { day: "Monday", name: "Push", focus: "HSPU + Volume", exercises: [
+        { name: "Wall HSPU", type: "reps", sets: 5, target: "max", tag: "SKILL", note: "1–3 reps is fine to start — add each session" },
+        { name: "Archer Push-up", type: "reps", sets: 4, target: "10 ea" },
+        { name: "Dips", type: "reps", sets: 4, target: "15", note: "Add weight if easy" },
+        { name: "Diamond Push-up", type: "reps", sets: 3, target: "20" },
+        { name: "Pike Push-up", type: "reps", sets: 3, target: "15", note: "Shoulder finisher" },
+      ]},
+      { day: "Tuesday", name: "Pull", focus: "Muscle-up + Back", exercises: [
+        { name: "Muscle-up Attempt", type: "reps", sets: 5, target: "max", tag: "SKILL", note: "Full attempts, no band" },
+        { name: "Weighted Pull-up", type: "reps", sets: 5, target: "5", note: "8–12kg" },
+        { name: "Typewriter Pull-up", type: "reps", sets: 4, target: "5 ea" },
+        { name: "Inverted Row", type: "reps", sets: 4, target: "15", note: "Feet elevated, slow tempo" },
+        { name: "False Grip Hang", type: "timed", sets: 3, duration: 30 },
+      ]},
+      { day: "Wednesday", name: "Core", focus: "Abs · L-sit · Endurance", exercises: [
+        { name: "Hanging Straight Leg Raise", type: "reps", sets: 4, target: "15" },
+        { name: "Windshield Wiper", type: "reps", sets: 3, target: "8 ea", note: "Full straight legs" },
+        { name: "L-sit Hold", type: "timed", sets: 6, duration: 20, tag: "SKILL", note: "Working toward V-sit" },
+        { name: "Dragon Flag Negative", type: "reps", sets: 3, target: "5", note: "Lower slowly from straight to floor" },
+        { name: "Hollow Body Hold", type: "timed", sets: 3, duration: 45 },
+      ]},
+      { day: "Thursday", name: "Push (Strength)", focus: "Overhead + Chest", exercises: [
+        { name: "Wall HSPU", type: "reps", sets: 5, target: "max", tag: "SKILL", note: "Same as Monday — frequency accelerates progress" },
+        { name: "Pseudo Planche Push-up", type: "reps", sets: 4, target: "10" },
+        { name: "Decline Push-up", type: "reps", sets: 4, target: "20" },
+        { name: "Dips", type: "reps", sets: 4, target: "12", note: "Controlled full depth" },
+        { name: "Face-to-Wall Handstand Hold", type: "timed", sets: 4, duration: 30 },
+      ]},
+      { day: "Friday", name: "Pull (Strength)", focus: "Strength + Muscle-up", exercises: [
+        { name: "Muscle-up", type: "reps", sets: 5, target: "max", tag: "SKILL", note: "Rest 3 min between sets" },
+        { name: "Weighted Pull-up", type: "reps", sets: 4, target: "6", note: "Heavy" },
+        { name: "Chest-to-Bar Pull-up", type: "reps", sets: 4, target: "6" },
+        { name: "Commando Pull-up", type: "reps", sets: 3, target: "8 ea" },
+        { name: "Negative Pull-up", type: "reps", sets: 3, target: "5", note: "8 sec descent" },
+      ]},
+      { day: "Saturday", name: "Full Body", focus: "Peak Volume", exercises: [
+        { name: "Pull-up", type: "reps", sets: 5, target: "max" },
+        { name: "Dips", type: "reps", sets: 5, target: "max" },
+        { name: "Hanging Leg Raise", type: "reps", sets: 4, target: "15" },
+        { name: "Burpee", type: "reps", sets: 5, target: "15" },
+        { name: "Wall HSPU", type: "reps", sets: 3, target: "max", tag: "SKILL" },
+      ]},
+      { day: "Sunday", name: "Rest", focus: "Recover. Grow.", rest: true },
+    ]
+  },
+];
+
+const REST_BETWEEN_SETS = 90;
+
+let state = { phase: 0, day: 0, progress: {}, showInstall: true, history: {} };
+const STORAGE_KEY = "calisthenics_progress_v2";
+
+// ISO week key like "2026-W25" so each week's checkmarks are independent
+function getWeekKey(date = new Date()) {
+  const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+  const dayNum = d.getUTCDay() || 7;
+  d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+  const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+  const weekNo = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+  return `${d.getUTCFullYear()}-W${String(weekNo).padStart(2,'0')}`;
+}
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      state.phase = parsed.phase || 0;
+      state.day = parsed.day || 0;
+      state.progress = parsed.progress || {};
+      state.showInstall = parsed.showInstall !== false;
+      state.history = parsed.history || {};
+    } else {
+      // migrate old key if present
+      const old = localStorage.getItem("toji_progress_v1");
+      if (old) {
+        const op = JSON.parse(old);
+        state.phase = op.phase || 0;
+        state.day = op.day || 0;
+        state.showInstall = op.showInstall !== false;
+      }
+    }
+  } catch(e) {}
+}
+function saveState() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({
+      phase: state.phase, day: state.day, progress: state.progress,
+      showInstall: state.showInstall, history: state.history
+    }));
+  } catch(e) {}
+}
+loadState();
+
+// progress key now includes the current week, so each week starts fresh
+function progKey(p, d, ei, si) { return `${getWeekKey()}|${p}-${d}-${ei}-${si}`; }
+
+// Called whenever a day's sets reach 100% — logs a completion into history
+function logDayCompletionIfFull(p, d) {
+  const completion = dayCompletion(p, d);
+  const dayObj = PHASES[p].days[d];
+  if (dayObj.rest) return;
+  const wk = getWeekKey();
+  const histKey = `${p}-${d}`;
+  if (!state.history[histKey]) state.history[histKey] = {};
+  if (completion >= 1) {
+    state.history[histKey][wk] = true;
+  } else {
+    delete state.history[histKey][wk];
+  }
+}
+
+function completedWeeksCount(p, d) {
+  const histKey = `${p}-${d}`;
+  const h = state.history[histKey];
+  if (!h) return 0;
+  return Object.keys(h).length;
+}
+
+let timerState = null;
+
+function startTimer(kind, seconds, exName) {
+  stopTimerInterval();
+  timerState = { kind, seconds, total: seconds, exName, running: true, interval: null };
+  render();
+  timerState.interval = setInterval(() => {
+    if (!timerState) return;
+    if (timerState.running) {
+      timerState.seconds -= 1;
+      if (timerState.seconds <= 0) {
+        playBeep();
+        if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
+        if (window._pendingTimerKey) {
+          state.progress[window._pendingTimerKey] = true;
+          window._pendingTimerKey = null;
+          logDayCompletionIfFull(state.phase, state.day);
+          saveState();
+        }
+        stopTimerInterval();
+        timerState = null;
+        render();
+        return;
+      }
+      renderTimerOnly();
+    }
+  }, 1000);
+}
+function stopTimerInterval() {
+  if (timerState && timerState.interval) clearInterval(timerState.interval);
+}
+function closeTimer() {
+  stopTimerInterval();
+  timerState = null;
+  render();
+}
+function toggleTimerPause() {
+  if (timerState) {
+    timerState.running = !timerState.running;
+    renderTimerOnly();
+  }
+}
+
+function playBeep() {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const o = ctx.createOscillator();
+    const g = ctx.createGain();
+    o.connect(g); g.connect(ctx.destination);
+    o.frequency.value = 880;
+    g.gain.setValueAtTime(0.3, ctx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.5);
+    o.start(); o.stop(ctx.currentTime + 0.5);
+  } catch(e) {}
+}
+
+function getCurrentPhase() { return PHASES[state.phase]; }
+function getCurrentDay() { return getCurrentPhase().days[state.day]; }
+
+function dayCompletion(p, d) {
+  const day = PHASES[p].days[d];
+  if (day.rest) return 1;
+  let total = 0, done = 0;
+  day.exercises.forEach((ex, ei) => {
+    for (let si = 0; si < ex.sets; si++) {
+      total++;
+      if (state.progress[progKey(p, d, ei, si)]) done++;
+    }
+  });
+  return total === 0 ? 0 : done / total;
+}
+
+function render() {
+  document.documentElement.style.setProperty('--accent', getCurrentPhase().accent);
+  const app = document.getElementById('app');
+
+  if (timerState) {
+    app.innerHTML = renderTimerOverlay();
+    attachTimerHandlers();
+    return;
+  }
+
+  const phase = getCurrentPhase();
+  const day = getCurrentDay();
+  const completion = dayCompletion(state.phase, state.day);
+
+  let html = `
+    <div class="topbar">
+      <div class="brand">CALI<span>·</span>STHENICS</div>
+      <div class="phase-pill">${phase.weeks}</div>
+    </div>
+
+    ${state.showInstall ? `
+    <div class="install-banner">
+      <span><b>Add to Home Screen:</b> tap Share → "Add to Home Screen" for app-like access.</span>
+      <button class="install-x" id="dismissInstall">×</button>
+    </div>` : ''}
+
+    <div class="phase-nav">
+      ${PHASES.map((p, i) => `
+        <button class="phase-btn ${i === state.phase ? 'active' : ''}" data-phase="${i}">
+          <div class="pnum">Phase ${p.id}</div>
+          <div class="pname">${p.name}</div>
+        </button>
+      `).join('')}
+    </div>
+
+    <div class="day-nav">
+      ${phase.days.map((d, i) => {
+        const c = dayCompletion(state.phase, i);
+        return `<button class="day-btn ${i === state.day ? 'active' : ''}" data-day="${i}">
+          ${d.day.slice(0,3)}${c >= 1 && !d.rest ? '<span class="done-dot"></span>' : ''}
+        </button>`;
+      }).join('')}
+    </div>
+
+    <div class="main">
+  `;
+
+  if (day.rest) {
+    html += `
+      <div class="rest-view">
+        <div class="rest-icon">◼</div>
+        <div class="rest-title">Rest Day</div>
+        <div class="rest-sub">Muscle is built during recovery, not during training.</div>
+      </div>
+    `;
+  } else {
+    html += `
+      <div class="day-header">
+        <div class="label">${day.day}</div>
+        <div class="name">${day.name}</div>
+        <div class="focus">${day.focus}</div>
+        <div class="progress-bar-wrap"><div class="progress-bar-fill" style="width:${completion*100}%"></div></div>
+        <div class="streak-badge">${completedWeeksCount(state.phase, state.day)} week${completedWeeksCount(state.phase, state.day) === 1 ? '' : 's'} completed on this day</div>
+      </div>
+    `;
+
+    day.exercises.forEach((ex, ei) => {
+      const setsArr = Array.from({length: ex.sets});
+      const allDone = setsArr.every((_, si) => state.progress[progKey(state.phase, state.day, ei, si)]);
+      html += `
+        <div class="ex-card ${allDone ? 'complete' : ''}">
+          <div class="ex-main">
+            <div class="ex-info">
+              <div class="ex-name-row">
+                <span class="ex-name">${ex.name}</span>
+                ${ex.tag ? `<span class="ex-tag">${ex.tag}</span>` : ''}
+              </div>
+              ${ex.note ? `<div class="ex-note">${ex.note}</div>` : ''}
+            </div>
+            <div class="ex-sets-label">${ex.sets} × ${ex.type === 'timed' ? ex.duration + 's' : ex.target}</div>
+          </div>
+          <div class="set-row">
+            ${setsArr.map((_, si) => {
+              const done = state.progress[progKey(state.phase, state.day, ei, si)];
+              if (ex.type === 'timed') {
+                return `<button class="set-chip timed ${done ? 'done' : ''}" data-action="timer" data-ei="${ei}" data-si="${si}" data-dur="${ex.duration}" data-name="${ex.name}">
+                  <span class="t">${si+1}</span><span>${ex.duration}s</span>
+                </button>`;
+              }
+              return `<button class="set-chip ${done ? 'done' : ''}" data-action="toggle" data-ei="${ei}" data-si="${si}">
+                ${si+1}
+              </button>`;
+            }).join('')}
+          </div>
+        </div>
+      `;
+    });
+
+    html += `<div style="height: 90px"></div>`;
+  }
+
+  html += `</div>`;
+
+  if (!day.rest) {
+    html += `
+      <div class="footer-action">
+        <button class="complete-btn" id="restTimerBtn">Start rest timer (90s)</button>
+      </div>
+    `;
+  }
+
+  app.innerHTML = html;
+  attachHandlers();
+}
+
+function renderTimerOnly() {
+  const app = document.getElementById('app');
+  const numEl = app.querySelector('.timer-num');
+  const ring = app.querySelector('.ring-progress');
+  if (numEl) numEl.textContent = formatTime(timerState.seconds);
+  if (ring) {
+    const pct = timerState.seconds / timerState.total;
+    const circumference = 2 * Math.PI * 110;
+    ring.style.strokeDashoffset = circumference * (1 - pct);
+  }
+  const playBtn = app.querySelector('.timer-btn.primary');
+  if (playBtn) playBtn.textContent = timerState.running ? '❙❙' : '▶';
+}
+
+function formatTime(s) {
+  const m = Math.floor(s / 60);
+  const sec = s % 60;
+  return `${m}:${sec.toString().padStart(2,'0')}`;
+}
+
+function renderTimerOverlay() {
+  const accent = getCurrentPhase().accent;
+  const circumference = 2 * Math.PI * 110;
+  const pct = timerState.seconds / timerState.total;
+  const isRest = timerState.kind === 'rest';
+  return `
+    <div class="timer-overlay">
+      <button class="timer-close" id="timerClose">Close</button>
+      <div class="timer-kind" style="color:${isRest ? '#888' : accent}">${isRest ? 'REST' : 'HOLD'}</div>
+      <div class="timer-exname">${timerState.exName}</div>
+      <div class="timer-ring-wrap">
+        <svg width="260" height="260">
+          <circle cx="130" cy="130" r="110" fill="none" stroke="#1c1c1c" stroke-width="10"/>
+          <circle class="ring-progress" cx="130" cy="130" r="110" fill="none"
+            stroke="${isRest ? '#888' : accent}" stroke-width="10"
+            stroke-dasharray="${circumference}" stroke-dashoffset="${circumference * (1-pct)}"
+            stroke-linecap="round" style="transition: stroke-dashoffset 1s linear"/>
+        </svg>
+        <div class="timer-num">${formatTime(timerState.seconds)}</div>
+      </div>
+      <div class="timer-controls">
+        <button class="timer-btn" id="timerReset">↺</button>
+        <button class="timer-btn primary" id="timerPause">${timerState.running ? '❙❙' : '▶'}</button>
+        <button class="timer-btn" id="timerAdd">+15</button>
+      </div>
+      <button class="timer-skip" id="timerSkip">Skip</button>
+    </div>
+  `;
+}
+
+function attachHandlers() {
+  document.querySelectorAll('[data-phase]').forEach(el => {
+    el.onclick = () => { state.phase = parseInt(el.dataset.phase); state.day = 0; saveState(); render(); };
+  });
+  document.querySelectorAll('[data-day]').forEach(el => {
+    el.onclick = () => { state.day = parseInt(el.dataset.day); saveState(); render(); };
+  });
+  document.querySelectorAll('[data-action="toggle"]').forEach(el => {
+    el.onclick = () => {
+      const key = progKey(state.phase, state.day, el.dataset.ei, el.dataset.si);
+      state.progress[key] = !state.progress[key];
+      logDayCompletionIfFull(state.phase, state.day);
+      saveState();
+      render();
+    };
+  });
+  document.querySelectorAll('[data-action="timer"]').forEach(el => {
+    el.onclick = () => {
+      const key = progKey(state.phase, state.day, el.dataset.ei, el.dataset.si);
+      window._pendingTimerKey = key;
+      startTimer('hold', parseInt(el.dataset.dur), el.dataset.name);
+    };
+  });
+  const restBtn = document.getElementById('restTimerBtn');
+  if (restBtn) restBtn.onclick = () => startTimer('rest', REST_BETWEEN_SETS, getCurrentDay().name);
+  const dismissBtn = document.getElementById('dismissInstall');
+  if (dismissBtn) dismissBtn.onclick = () => { state.showInstall = false; saveState(); render(); };
+}
+
+function attachTimerHandlers() {
+  document.getElementById('timerClose').onclick = closeTimer;
+  document.getElementById('timerPause').onclick = toggleTimerPause;
+  document.getElementById('timerReset').onclick = () => {
+    timerState.seconds = timerState.total;
+    renderTimerOnly();
+  };
+  document.getElementById('timerAdd').onclick = () => {
+    timerState.seconds += 15;
+    timerState.total += 15;
+    renderTimerOnly();
+  };
+  document.getElementById('timerSkip').onclick = () => {
+    if (timerState.kind === 'hold' && window._pendingTimerKey) {
+      state.progress[window._pendingTimerKey] = true;
+      window._pendingTimerKey = null;
+      logDayCompletionIfFull(state.phase, state.day);
+      saveState();
+    }
+    closeTimer();
+  };
+}
+
+render();
+</script>
+</body>
+</html>
