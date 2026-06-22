@@ -472,7 +472,7 @@ const PHASES = [
 
 const REST_BETWEEN_SETS = 90;
 
-let state = { phase: 0, day: 0, progress: {}, showInstall: true, history: {} };
+let state = { phase: 0, day: 0, progress: {}, showInstall: true, history: {}, activeTab: 'workout', profile: {} };
 const STORAGE_KEY = "calisthenics_progress_v2";
 
 // ISO week key like "2026-W25" so each week's checkmarks are independent
@@ -495,6 +495,8 @@ function loadState() {
       state.progress = parsed.progress || {};
       state.showInstall = parsed.showInstall !== false;
       state.history = parsed.history || {};
+      state.activeTab = parsed.activeTab || 'workout';
+      state.profile = parsed.profile || {};
     } else {
       // migrate old key if present
       const old = localStorage.getItem("toji_progress_v1");
@@ -511,7 +513,8 @@ function saveState() {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify({
       phase: state.phase, day: state.day, progress: state.progress,
-      showInstall: state.showInstall, history: state.history
+      showInstall: state.showInstall, history: state.history,
+      activeTab: state.activeTab, profile: state.profile
     }));
   } catch(e) {}
 }
@@ -521,15 +524,20 @@ loadState();
 function progKey(p, d, ei, si) { return `${getWeekKey()}|${p}-${d}-${ei}-${si}`; }
 
 // Called whenever a day's sets reach 100% — logs a completion into history
-function logDayCompletionIfFull(p, d) {
+function logDayCompletionIfFull(p, d, wasAlreadyComplete) {
   const completion = dayCompletion(p, d);
   const dayObj = PHASES[p].days[d];
   if (dayObj.rest) return;
   const wk = getWeekKey();
+  const dk = getTodayKey();
   const histKey = `${p}-${d}`;
   if (!state.history[histKey]) state.history[histKey] = {};
   if (completion >= 1) {
-    state.history[histKey][wk] = true;
+    const alreadyLogged = !!state.history[histKey][wk];
+    state.history[histKey][wk] = dk; // store date string instead of true
+    if (!alreadyLogged && !wasAlreadyComplete) {
+      setTimeout(() => { playFanfare(); launchConfetti(); }, 100);
+    }
   } else {
     delete state.history[histKey][wk];
   }
@@ -544,32 +552,172 @@ function completedWeeksCount(p, d) {
 
 let timerState = null;
 
-function startTimer(kind, seconds, exName) {
-  stopTimerInterval();
-  timerState = { kind, seconds, total: seconds, exName, running: true, interval: null };
-  render();
-  timerState.interval = setInterval(() => {
-    if (!timerState) return;
-    if (timerState.running) {
-      timerState.seconds -= 1;
-      if (timerState.seconds <= 0) {
-        playBeep();
-        if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
-        if (window._pendingTimerKey) {
-          state.progress[window._pendingTimerKey] = true;
-          window._pendingTimerKey = null;
-          logDayCompletionIfFull(state.phase, state.day);
-          saveState();
-        }
-        stopTimerInterval();
-        timerState = null;
-        render();
-        return;
-      }
-      renderTimerOnly();
-    }
-  }, 1000);
+// Bilateral: exercises whose note or target contains 'each side' or 'each'
+function isBilateral(ex) {
+  const haystack = ((ex.note || '') + ' ' + (ex.target || '')).toLowerCase();
+  return haystack.includes('each side') || haystack.includes('each');
 }
+
+// Chime: three-tone ascending bell (set completion / timer end)
+function playChime() {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    [[0, 660, 0.25], [0.18, 880, 0.2], [0.36, 1100, 0.15]].forEach(([t, freq, vol]) => {
+      const o = ctx.createOscillator();
+      const g = ctx.createGain();
+      o.connect(g); g.connect(ctx.destination);
+      o.type = 'sine';
+      o.frequency.value = freq;
+      g.gain.setValueAtTime(vol, ctx.currentTime + t);
+      g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + t + 0.6);
+      o.start(ctx.currentTime + t);
+      o.stop(ctx.currentTime + t + 0.7);
+    });
+    if (navigator.vibrate) navigator.vibrate([150, 80, 150]);
+  } catch(e) {}
+}
+
+// Fanfare: trumpet-like day completion sound
+function playFanfare() {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const notes = [
+      [0,    523, 0.3, 'square'],
+      [0.12, 659, 0.3, 'square'],
+      [0.24, 784, 0.3, 'square'],
+      [0.38, 1047,0.4, 'square'],
+      [0.38, 784, 0.3, 'square'],
+      [0.6,  1047,0.5, 'square'],
+    ];
+    notes.forEach(([t, freq, vol, type]) => {
+      const o = ctx.createOscillator();
+      const g = ctx.createGain();
+      o.connect(g); g.connect(ctx.destination);
+      o.type = type;
+      o.frequency.value = freq;
+      g.gain.setValueAtTime(vol * 0.3, ctx.currentTime + t);
+      g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + t + 0.25);
+      o.start(ctx.currentTime + t);
+      o.stop(ctx.currentTime + t + 0.3);
+    });
+    if (navigator.vibrate) navigator.vibrate([100, 50, 100, 50, 200]);
+  } catch(e) {}
+}
+
+// Confetti burst
+function launchConfetti() {
+  const canvas = document.createElement('canvas');
+  canvas.style.cssText = 'position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:999';
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  document.body.appendChild(canvas);
+  const ctx = canvas.getContext('2d');
+  const accent = getCurrentPhase().accent;
+  const colors = [accent, '#fff', '#f39c12', '#e74c3c', '#3498db', '#2ecc71', '#f0ede8'];
+  const pieces = Array.from({length: 120}, () => ({
+    x: Math.random() * canvas.width,
+    y: -10 - Math.random() * 200,
+    w: 6 + Math.random() * 8,
+    h: 10 + Math.random() * 8,
+    color: colors[Math.floor(Math.random() * colors.length)],
+    rot: Math.random() * Math.PI * 2,
+    rotSpeed: (Math.random() - 0.5) * 0.2,
+    vy: 3 + Math.random() * 5,
+    vx: (Math.random() - 0.5) * 4,
+    opacity: 1,
+  }));
+  let frame = 0;
+  function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    pieces.forEach(p => {
+      p.x += p.vx; p.y += p.vy; p.rot += p.rotSpeed; p.vy += 0.15;
+      if (frame > 80) p.opacity -= 0.015;
+      ctx.save();
+      ctx.globalAlpha = Math.max(0, p.opacity);
+      ctx.translate(p.x, p.y);
+      ctx.rotate(p.rot);
+      ctx.fillStyle = p.color;
+      ctx.fillRect(-p.w/2, -p.h/2, p.w, p.h);
+      ctx.restore();
+    });
+    frame++;
+    if (frame < 140) requestAnimationFrame(draw);
+    else canvas.remove();
+  }
+  requestAnimationFrame(draw);
+}
+
+// Timer phases for bilateral: 'side1' -> 'switch' -> 'side2' -> done
+// For unilateral: 'hold' -> done
+// For rest: 'rest' -> done
+const SWITCH_BREAK = 5;
+const GETREADY_BREAK = 5;
+
+function startTimer(kind, seconds, exName, bilateral = false) {
+  stopTimerInterval();
+  timerState = {
+    kind,
+    phase: 'getready',
+    seconds: GETREADY_BREAK,
+    total: GETREADY_BREAK,
+    exName,
+    bilateral,
+    holdDuration: seconds,
+    running: true,
+    interval: null
+  };
+  render();
+  timerState.interval = setInterval(tick, 1000);
+}
+
+function tick() {
+  if (!timerState || !timerState.running) return;
+  timerState.seconds -= 1;
+  if (timerState.seconds > 0) { renderTimerOnly(); return; }
+
+  // Reached zero — what phase are we in?
+
+  if (timerState.phase === 'getready') {
+    // Transition into the actual hold (side1 if bilateral, hold if not)
+    playChime();
+    timerState.phase = timerState.bilateral ? 'side1' : (timerState.kind === 'rest' ? 'rest' : 'hold');
+    timerState.seconds = timerState.holdDuration;
+    timerState.total = timerState.holdDuration;
+    renderTimerOnly();
+    return;
+  }
+
+  playChime();
+
+  if (timerState.phase === 'side1') {
+    timerState.phase = 'switch';
+    timerState.seconds = SWITCH_BREAK;
+    timerState.total = SWITCH_BREAK;
+    renderTimerOnly();
+    return;
+  }
+
+  if (timerState.phase === 'switch') {
+    timerState.phase = 'side2';
+    timerState.seconds = timerState.holdDuration;
+    timerState.total = timerState.holdDuration;
+    renderTimerOnly();
+    return;
+  }
+
+  // side2, hold, or rest — fully done
+  if (window._pendingTimerKey) {
+    const wasComplete = dayCompletion(state.phase, state.day) >= 1;
+    state.progress[window._pendingTimerKey] = true;
+    window._pendingTimerKey = null;
+    logDayCompletionIfFull(state.phase, state.day, wasComplete);
+    saveState();
+  }
+  stopTimerInterval();
+  timerState = null;
+  render();
+}
+
 function stopTimerInterval() {
   if (timerState && timerState.interval) clearInterval(timerState.interval);
 }
@@ -583,19 +731,6 @@ function toggleTimerPause() {
     timerState.running = !timerState.running;
     renderTimerOnly();
   }
-}
-
-function playBeep() {
-  try {
-    const ctx = new (window.AudioContext || window.webkitAudioContext)();
-    const o = ctx.createOscillator();
-    const g = ctx.createGain();
-    o.connect(g); g.connect(ctx.destination);
-    o.frequency.value = 880;
-    g.gain.setValueAtTime(0.3, ctx.currentTime);
-    g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.5);
-    o.start(); o.stop(ctx.currentTime + 0.5);
-  } catch(e) {}
 }
 
 function getCurrentPhase() { return PHASES[state.phase]; }
@@ -627,117 +762,168 @@ function render() {
   const phase = getCurrentPhase();
   const day = getCurrentDay();
   const completion = dayCompletion(state.phase, state.day);
+  const activeTab = state.activeTab || 'workout';
 
   let html = `
     <div class="topbar">
       <div class="brand">CALI<span>·</span>STHENICS</div>
-      <div class="phase-pill">${phase.weeks}</div>
+      <div class="topbar-right">
+        <button class="settings-btn" id="settingsBtn">⚙️</button>
+      </div>
     </div>
-
-    ${state.showInstall ? `
-    <div class="install-banner">
-      <span><b>Add to Home Screen:</b> tap Share → "Add to Home Screen" for app-like access.</span>
-      <button class="install-x" id="dismissInstall">×</button>
-    </div>` : ''}
-
-    <div class="phase-nav">
-      ${PHASES.map((p, i) => `
-        <button class="phase-btn ${i === state.phase ? 'active' : ''}" data-phase="${i}">
-          <div class="pnum">Phase ${p.id}</div>
-          <div class="pname">${p.name}</div>
-        </button>
-      `).join('')}
-    </div>
-
-    <div class="day-nav">
-      ${phase.days.map((d, i) => {
-        const c = dayCompletion(state.phase, i);
-        return `<button class="day-btn ${i === state.day ? 'active' : ''}" data-day="${i}">
-          ${d.day.slice(0,3)}${c >= 1 && !d.rest ? '<span class="done-dot"></span>' : ''}
-        </button>`;
-      }).join('')}
-    </div>
-
-    <div class="main">
+    ${showSettings ? renderSettingsModal() : ''}
   `;
 
-  if (day.rest) {
-    html += `
-      <div class="rest-view">
-        <div class="rest-icon">◼</div>
-        <div class="rest-title">Rest Day</div>
-        <div class="rest-sub">Muscle is built during recovery, not during training.</div>
-      </div>
-    `;
+  if (activeTab === 'habit') {
+    html += `<div class="main" style="padding-bottom:80px">${renderHabitTracker()}</div>`;
   } else {
+    // Workout tab
     html += `
-      <div class="day-header">
-        <div class="label">${day.day}</div>
-        <div class="name">${day.name}</div>
-        <div class="focus">${day.focus}</div>
-        <div class="progress-bar-wrap"><div class="progress-bar-fill" style="width:${completion*100}%"></div></div>
-        <div class="streak-badge">${completedWeeksCount(state.phase, state.day)} week${completedWeeksCount(state.phase, state.day) === 1 ? '' : 's'} completed on this day</div>
+      ${state.showInstall ? `
+      <div class="install-banner">
+        <span><b>Add to Home Screen:</b> tap Share → "Add to Home Screen" for app-like access.</span>
+        <button class="install-x" id="dismissInstall">×</button>
+      </div>` : ''}
+
+      <div class="phase-nav">
+        ${PHASES.map((p, i) => `
+          <button class="phase-btn ${i === state.phase ? 'active' : ''}" data-phase="${i}">
+            <div class="pnum">Phase ${p.id}</div>
+            <div class="pname">${p.name}</div>
+          </button>
+        `).join('')}
       </div>
+
+      <div class="day-nav">
+        ${phase.days.map((d, i) => {
+          const c = dayCompletion(state.phase, i);
+          return `<button class="day-btn ${i === state.day ? 'active' : ''}" data-day="${i}">
+            ${d.day.slice(0,3)}${c >= 1 && !d.rest ? '<span class="done-dot"></span>' : ''}
+          </button>`;
+        }).join('')}
+      </div>
+
+      <div class="main">
     `;
 
-    day.exercises.forEach((ex, ei) => {
-      const setsArr = Array.from({length: ex.sets});
-      const allDone = setsArr.every((_, si) => state.progress[progKey(state.phase, state.day, ei, si)]);
+    if (day.rest) {
       html += `
-        <div class="ex-card ${allDone ? 'complete' : ''}">
-          <div class="ex-main">
-            <div class="ex-info">
-              <div class="ex-name-row">
-                <span class="ex-name">${ex.name}</span>
-                ${ex.tag ? `<span class="ex-tag">${ex.tag}</span>` : ''}
-              </div>
-              ${ex.note ? `<div class="ex-note">${ex.note}</div>` : ''}
-            </div>
-            <div class="ex-sets-label">${ex.sets} × ${ex.type === 'timed' ? ex.duration + 's' : ex.target}</div>
-          </div>
-          <div class="set-row">
-            ${setsArr.map((_, si) => {
-              const done = state.progress[progKey(state.phase, state.day, ei, si)];
-              if (ex.type === 'timed') {
-                return `<button class="set-chip timed ${done ? 'done' : ''}" data-action="timer" data-ei="${ei}" data-si="${si}" data-dur="${ex.duration}" data-name="${ex.name}">
-                  <span class="t">${si+1}</span><span>${ex.duration}s</span>
-                </button>`;
-              }
-              return `<button class="set-chip ${done ? 'done' : ''}" data-action="toggle" data-ei="${ei}" data-si="${si}">
-                ${si+1}
-              </button>`;
-            }).join('')}
-          </div>
+        <div class="rest-view">
+          <div class="rest-icon">◼</div>
+          <div class="rest-title">Rest Day</div>
+          <div class="rest-sub">Muscle is built during recovery, not during training.</div>
         </div>
       `;
-    });
+    } else {
+      html += `
+        <div class="day-header">
+          <div class="label">${day.day}</div>
+          <div class="name-row">
+            <div class="name">${day.name}</div>
+            <div class="cal-badge">🔥 ${estimateDayCalories(state.phase, state.day)} kcal</div>
+          </div>
+          <div class="focus">${day.focus}</div>
+          <div class="progress-bar-wrap"><div class="progress-bar-fill" style="width:${completion*100}%"></div></div>
+          <div class="streak-badge">${completedWeeksCount(state.phase, state.day)} week${completedWeeksCount(state.phase, state.day) === 1 ? '' : 's'} completed on this day</div>
+        </div>
+      `;
 
-    html += `<div style="height: 90px"></div>`;
+      day.exercises.forEach((ex, ei) => {
+        const setsArr = Array.from({length: ex.sets});
+        const allDone = setsArr.every((_, si) => state.progress[progKey(state.phase, state.day, ei, si)]);
+        const bilateral = isBilateral(ex);
+        html += `
+          <div class="ex-card ${allDone ? 'complete' : ''}">
+            <div class="ex-main">
+              <div class="ex-info">
+                <div class="ex-name-row">
+                  <span class="ex-name">${ex.name}</span>
+                  ${ex.tag ? `<span class="ex-tag">${ex.tag}</span>` : ''}
+                </div>
+                ${ex.note ? `<div class="ex-note">${ex.note}</div>` : ''}
+              </div>
+              <div class="ex-sets-label">${ex.sets} × ${ex.type === 'timed' ? ex.duration + 's' : ex.target}</div>
+            </div>
+            <div class="set-row">
+              ${setsArr.map((_, si) => {
+                const done = state.progress[progKey(state.phase, state.day, ei, si)];
+                if (ex.type === 'timed') {
+                  return `<button class="set-chip timed ${done ? 'done' : ''}" data-action="timer" data-ei="${ei}" data-si="${si}" data-dur="${ex.duration}" data-name="${ex.name}" data-bilateral="${bilateral}">
+                    <span class="t">${si+1}</span><span>${bilateral ? ex.duration + 's ea' : ex.duration + 's'}</span>
+                  </button>`;
+                }
+                return `<button class="set-chip ${done ? 'done' : ''}" data-action="toggle" data-ei="${ei}" data-si="${si}">
+                  ${si+1}
+                </button>`;
+              }).join('')}
+            </div>
+          </div>
+        `;
+      });
+
+      html += `<div style="height: 90px"></div>`;
+    }
+
+    html += `</div>`;
+
+    if (!day.rest) {
+      html += `
+        <div class="footer-action">
+          <button class="complete-btn" id="restTimerBtn">Start rest timer (90s)</button>
+        </div>
+      `;
+    }
   }
 
-  html += `</div>`;
-
-  if (!day.rest) {
-    html += `
-      <div class="footer-action">
-        <button class="complete-btn" id="restTimerBtn">Start rest timer (90s)</button>
-      </div>
-    `;
-  }
+  // Bottom nav
+  html += `
+    <div class="bottom-nav">
+      <button id="workoutTabBtn" class="${activeTab === 'workout' ? 'active' : ''}">
+        <span class="nav-icon">💪</span>Workout
+      </button>
+      <button id="habitTabBtn" class="${activeTab === 'habit' ? 'active' : ''}">
+        <span class="nav-icon">📅</span>History
+      </button>
+    </div>
+  `;
 
   app.innerHTML = html;
   attachHandlers();
+}
+
+function getPhaseLabel() {
+  if (!timerState) return '';
+  if (timerState.phase === 'getready') return 'GET READY';
+  if (timerState.phase === 'side1') return 'SIDE 1';
+  if (timerState.phase === 'switch') return 'SWITCH SIDES';
+  if (timerState.phase === 'side2') return 'SIDE 2';
+  if (timerState.phase === 'rest') return 'REST';
+  return 'HOLD';
+}
+
+function getPhaseColor() {
+  const accent = getCurrentPhase().accent;
+  if (timerState.phase === 'getready') return '#888';
+  if (timerState.phase === 'switch') return '#f39c12';
+  if (timerState.phase === 'rest') return '#888';
+  return accent;
 }
 
 function renderTimerOnly() {
   const app = document.getElementById('app');
   const numEl = app.querySelector('.timer-num');
   const ring = app.querySelector('.ring-progress');
+  const kindEl = app.querySelector('.timer-kind');
   if (numEl) numEl.textContent = formatTime(timerState.seconds);
   if (ring) {
     const pct = timerState.seconds / timerState.total;
     const circumference = 2 * Math.PI * 110;
     ring.style.strokeDashoffset = circumference * (1 - pct);
+    ring.style.stroke = getPhaseColor();
+  }
+  if (kindEl) {
+    kindEl.textContent = getPhaseLabel();
+    kindEl.style.color = getPhaseColor();
   }
   const playBtn = app.querySelector('.timer-btn.primary');
   if (playBtn) playBtn.textContent = timerState.running ? '❙❙' : '▶';
@@ -753,17 +939,18 @@ function renderTimerOverlay() {
   const accent = getCurrentPhase().accent;
   const circumference = 2 * Math.PI * 110;
   const pct = timerState.seconds / timerState.total;
-  const isRest = timerState.kind === 'rest';
+  const color = getPhaseColor();
+  const label = getPhaseLabel();
   return `
     <div class="timer-overlay">
       <button class="timer-close" id="timerClose">Close</button>
-      <div class="timer-kind" style="color:${isRest ? '#888' : accent}">${isRest ? 'REST' : 'HOLD'}</div>
+      <div class="timer-kind" style="color:${color}">${label}</div>
       <div class="timer-exname">${timerState.exName}</div>
       <div class="timer-ring-wrap">
         <svg width="260" height="260">
           <circle cx="130" cy="130" r="110" fill="none" stroke="#1c1c1c" stroke-width="10"/>
           <circle class="ring-progress" cx="130" cy="130" r="110" fill="none"
-            stroke="${isRest ? '#888' : accent}" stroke-width="10"
+            stroke="${color}" stroke-width="10"
             stroke-dasharray="${circumference}" stroke-dashoffset="${circumference * (1-pct)}"
             stroke-linecap="round" style="transition: stroke-dashoffset 1s linear"/>
         </svg>
@@ -789,8 +976,11 @@ function attachHandlers() {
   document.querySelectorAll('[data-action="toggle"]').forEach(el => {
     el.onclick = () => {
       const key = progKey(state.phase, state.day, el.dataset.ei, el.dataset.si);
-      state.progress[key] = !state.progress[key];
-      logDayCompletionIfFull(state.phase, state.day);
+      const wasComplete = dayCompletion(state.phase, state.day) >= 1;
+      const isChecking = !state.progress[key];
+      state.progress[key] = isChecking;
+      if (isChecking) playChime();
+      logDayCompletionIfFull(state.phase, state.day, wasComplete);
       saveState();
       render();
     };
@@ -799,20 +989,44 @@ function attachHandlers() {
     el.onclick = () => {
       const key = progKey(state.phase, state.day, el.dataset.ei, el.dataset.si);
       window._pendingTimerKey = key;
-      startTimer('hold', parseInt(el.dataset.dur), el.dataset.name);
+      const bilateral = el.dataset.bilateral === 'true';
+      startTimer('hold', parseInt(el.dataset.dur), el.dataset.name, bilateral);
     };
   });
   const restBtn = document.getElementById('restTimerBtn');
-  if (restBtn) restBtn.onclick = () => startTimer('rest', REST_BETWEEN_SETS, getCurrentDay().name);
+  if (restBtn) restBtn.onclick = () => {
+    stopTimerInterval();
+    timerState = { kind: 'rest', phase: 'rest', seconds: REST_BETWEEN_SETS, total: REST_BETWEEN_SETS, exName: getCurrentDay().name, bilateral: false, holdDuration: REST_BETWEEN_SETS, running: true, interval: null };
+    render();
+    timerState.interval = setInterval(tick, 1000);
+  };
   const dismissBtn = document.getElementById('dismissInstall');
   if (dismissBtn) dismissBtn.onclick = () => { state.showInstall = false; saveState(); render(); };
+  const settingsBtn = document.getElementById('settingsBtn');
+  if (settingsBtn) settingsBtn.onclick = () => { showSettings = true; render(); };
+  if (showSettings) attachSettingsHandlers();
+  const habitTab = document.getElementById('habitTabBtn');
+  if (habitTab) habitTab.onclick = () => { state.activeTab = 'habit'; saveState(); render(); };
+  const workoutTab = document.getElementById('workoutTabBtn');
+  if (workoutTab) workoutTab.onclick = () => { state.activeTab = 'workout'; saveState(); render(); };
 }
 
 function attachTimerHandlers() {
   document.getElementById('timerClose').onclick = closeTimer;
   document.getElementById('timerPause').onclick = toggleTimerPause;
   document.getElementById('timerReset').onclick = () => {
-    timerState.seconds = timerState.total;
+    if (timerState.phase === 'getready') {
+      timerState.seconds = GETREADY_BREAK;
+      timerState.total = GETREADY_BREAK;
+    } else if (timerState.phase === 'side2') {
+      timerState.seconds = timerState.holdDuration;
+      timerState.total = timerState.holdDuration;
+    } else if (timerState.phase === 'switch') {
+      timerState.seconds = SWITCH_BREAK;
+      timerState.total = SWITCH_BREAK;
+    } else {
+      timerState.seconds = timerState.total;
+    }
     renderTimerOnly();
   };
   document.getElementById('timerAdd').onclick = () => {
@@ -822,16 +1036,425 @@ function attachTimerHandlers() {
   };
   document.getElementById('timerSkip').onclick = () => {
     if (timerState.kind === 'hold' && window._pendingTimerKey) {
+      const wasComplete = dayCompletion(state.phase, state.day) >= 1;
       state.progress[window._pendingTimerKey] = true;
       window._pendingTimerKey = null;
-      logDayCompletionIfFull(state.phase, state.day);
+      playChime();
+      logDayCompletionIfFull(state.phase, state.day, wasComplete);
       saveState();
     }
     closeTimer();
   };
 }
 
+// ===================== CALORIE ESTIMATION =====================
+const EXERCISE_METS = {
+  'push-up': 3.8, 'pike push': 4.2, 'archer push': 5.0, 'decline push': 4.5,
+  'diamond push': 4.0, 'wide push': 3.8, 'pseudo planche': 5.5, 'dip': 4.5,
+  'pull-up': 5.0, 'chin-up': 5.0, 'commando': 5.5, 'inverted row': 4.0,
+  'scapular': 3.0, 'typewriter': 6.0, 'explosive pull': 6.5, 'negative': 4.0,
+  'false grip': 3.5, 'muscle-up': 7.0, 'weighted pull': 6.0, 'chest-to-bar': 6.0,
+  'burpee': 8.0, 'plank': 3.5, 'side plank': 3.0, 'hollow body': 3.5,
+  'hanging': 4.0, 'windshield': 5.0, 'dragon flag': 6.0, 'l-sit': 5.0,
+  'handstand': 4.5, 'wall hspu': 6.0, 'wall walk': 5.5,
+};
+
+function getMET(exName) {
+  const lower = exName.toLowerCase();
+  for (const [key, met] of Object.entries(EXERCISE_METS)) {
+    if (lower.includes(key)) return met;
+  }
+  return 4.0;
+}
+
+function estimateDayCalories(phaseIdx, dayIdx) {
+  const day = PHASES[phaseIdx].days[dayIdx];
+  if (day.rest || !day.exercises) return 0;
+  const p = state.profile;
+  const weightKg = p.weight ? (p.unit === 'lbs' ? p.weight * 0.453592 : parseFloat(p.weight)) : 75;
+  const ageYrs = p.age ? parseFloat(p.age) : 25;
+  const isMale = p.gender !== 'female';
+  const heightCm = p.height ? (p.heightUnit === 'ft' ? parseFloat(p.height) * 30.48 : parseFloat(p.height)) : 175;
+  let totalCals = 0;
+  day.exercises.forEach(ex => {
+    const met = getMET(ex.name);
+    let durationMins;
+    if (ex.type === 'timed') {
+      const dur = isBilateral(ex) ? ex.duration * 2 + 5 : ex.duration;
+      durationMins = (dur * ex.sets) / 60;
+    } else {
+      durationMins = ex.sets * 2.5;
+    }
+    totalCals += met * weightKg * (durationMins / 60);
+  });
+  return Math.round(totalCals * 1.1);
+}
+
+// ===================== SETTINGS MODAL =====================
+let showSettings = false;
+
+function renderSettingsModal() {
+  const p = state.profile;
+  return `
+    <div class="modal-overlay" id="settingsOverlay">
+      <div class="modal">
+        <div class="modal-header">
+          <div class="modal-title">Profile Settings</div>
+          <button class="modal-close" id="closeSettings">×</button>
+        </div>
+        <div class="modal-body">
+          <div class="modal-note">Used to estimate calories burned. Defaults used if blank.</div>
+          <div class="setting-row">
+            <label>Gender</label>
+            <div class="seg-control">
+              <button class="seg-btn ${(!p.gender||p.gender==='male')?'active':''}" data-field="gender" data-val="male">Male</button>
+              <button class="seg-btn ${p.gender==='female'?'active':''}" data-field="gender" data-val="female">Female</button>
+            </div>
+          </div>
+          <div class="setting-row">
+            <label>Age</label>
+            <input class="setting-input" id="inp-age" type="number" placeholder="25" value="${p.age||''}" min="10" max="99">
+          </div>
+          <div class="setting-row">
+            <label>Weight</label>
+            <div class="input-with-unit">
+              <input class="setting-input" id="inp-weight" type="number" placeholder="${p.unit==='lbs'?'165':'75'}" value="${p.weight||''}">
+              <div class="seg-control small">
+                <button class="seg-btn ${(!p.unit||p.unit==='kg')?'active':''}" data-field="unit" data-val="kg">kg</button>
+                <button class="seg-btn ${p.unit==='lbs'?'active':''}" data-field="unit" data-val="lbs">lbs</button>
+              </div>
+            </div>
+          </div>
+          <div class="setting-row">
+            <label>Height</label>
+            <div class="input-with-unit">
+              <input class="setting-input" id="inp-height" type="number" placeholder="${p.heightUnit==='ft'?'5.9':'175'}" value="${p.height||''}">
+              <div class="seg-control small">
+                <button class="seg-btn ${(!p.heightUnit||p.heightUnit==='cm')?'active':''}" data-field="heightUnit" data-val="cm">cm</button>
+                <button class="seg-btn ${p.heightUnit==='ft'?'active':''}" data-field="heightUnit" data-val="ft">ft</button>
+              </div>
+            </div>
+          </div>
+          <button class="save-btn" id="saveSettings">Save</button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function attachSettingsHandlers() {
+  document.getElementById('closeSettings').onclick = () => { showSettings = false; render(); };
+  document.getElementById('settingsOverlay').onclick = (e) => { if (e.target.id==='settingsOverlay') { showSettings=false; render(); } };
+  document.querySelectorAll('.seg-btn[data-field]').forEach(btn => {
+    btn.onclick = () => {
+      state.profile[btn.dataset.field] = btn.dataset.val;
+      saveState();
+      document.getElementById('settingsOverlay').outerHTML = renderSettingsModal();
+      attachSettingsHandlers();
+    };
+  });
+  document.getElementById('saveSettings').onclick = () => {
+    const age = document.getElementById('inp-age').value;
+    const weight = document.getElementById('inp-weight').value;
+    const height = document.getElementById('inp-height').value;
+    if (age) state.profile.age = age;
+    if (weight) state.profile.weight = weight;
+    if (height) state.profile.height = height;
+    saveState();
+    showSettings = false;
+    render();
+  };
+}
+
 render();
+function getSessionKey(phaseIdx, dayIdx) { return `${phaseIdx}-${dayIdx}`; }
+
+function getAllSessions() {
+  // Returns array of {phaseIdx, dayIdx, phaseName, dayName, weekKey, dateStr} sorted newest first
+  const sessions = [];
+  Object.keys(state.history).forEach(sessionKey => {
+    const [p, d] = sessionKey.split('-').map(Number);
+    const phase = PHASES[p];
+    const day = phase && phase.days[d];
+    if (!phase || !day) return;
+    Object.keys(state.history[sessionKey]).forEach(wk => {
+      sessions.push({ phaseIdx: p, dayIdx: d, phaseName: phase.name, dayName: day.name, focus: day.focus, weekKey: wk });
+    });
+  });
+  sessions.sort((a, b) => b.weekKey.localeCompare(a.weekKey));
+  return sessions;
+}
+
+function getStreakCount() {
+  // Count consecutive weeks (from most recent) where at least one day was completed
+  const weekSet = new Set();
+  Object.values(state.history).forEach(wkMap => {
+    Object.keys(wkMap).forEach(wk => weekSet.add(wk));
+  });
+  const weeks = Array.from(weekSet).sort().reverse();
+  const currentWk = getWeekKey();
+  let streak = 0;
+  let expected = currentWk;
+  for (const wk of weeks) {
+    if (wk === expected) {
+      streak++;
+      expected = prevWeekKey(expected);
+    } else break;
+  }
+  return streak;
+}
+
+function prevWeekKey(wk) {
+  const [year, w] = wk.split('-W').map(Number);
+  if (w === 1) return `${year-1}-W52`;
+  return `${year}-W${String(w-1).padStart(2,'0')}`;
+}
+
+function getDayStreak() {
+  // Count consecutive calendar days (today backwards) where at least one session was logged
+  // Sessions are stored by week key — we need to know which dates had completions
+  // We store completions by week key only, so we approximate: count sessions per week
+  // and check if today's week and yesterday's weeks have sessions
+  // For a true day streak we need date-level tracking — add dateKey to history entries
+  const today = new Date();
+  const dateKeys = new Set();
+  // dateKey stored in history as "YYYY-MM-DD" alongside weekKey
+  Object.values(state.history).forEach(wkMap => {
+    Object.keys(wkMap).forEach(entry => {
+      // entries can be true (old) or a dateKey string
+      if (typeof wkMap[entry] === 'string') dateKeys.add(wkMap[entry]);
+      else if (wkMap[entry] === true) {
+        // legacy: we don't know the exact date, skip for streak
+      }
+    });
+  });
+  // Check consecutive days back from today
+  let streak = 0;
+  const d = new Date(today);
+  while (true) {
+    const dk = d.toISOString().slice(0, 10);
+    if (dateKeys.has(dk)) { streak++; d.setDate(d.getDate() - 1); }
+    else break;
+  }
+  return streak;
+}
+
+function getTodayKey() { return new Date().toISOString().slice(0, 10); }
+
+function getTotalSessions() {
+  let count = 0;
+  Object.values(state.history).forEach(wkMap => { count += Object.keys(wkMap).length; });
+  return count;
+}
+
+function renderHabitTracker() {
+  const sessions = getAllSessions();
+  const streak = getStreakCount();
+  const total = getTotalSessions();
+  const dayStreak = getDayStreak();
+  const accent = getCurrentPhase().accent;
+
+  // Group sessions by week
+  const byWeek = {};
+  sessions.forEach(s => {
+    if (!byWeek[s.weekKey]) byWeek[s.weekKey] = [];
+    byWeek[s.weekKey].push(s);
+  });
+
+  let html = `
+    <div class="habit-stats">
+      <div class="habit-stat">
+        <div class="habit-stat-num" style="color:${accent}">${streak}</div>
+        <div class="habit-stat-label">Week streak</div>
+      </div>
+      <div class="habit-stat">
+        <div class="habit-stat-num" style="color:${accent}">${total}</div>
+        <div class="habit-stat-label">Sessions total</div>
+      </div>
+      <div class="habit-stat">
+        <div class="habit-stat-num" style="color:${accent}">${dayStreak}</div>
+        <div class="habit-stat-label">Days in a row</div>
+      </div>
+    </div>
+  `;
+
+  if (sessions.length === 0) {
+    html += `<div class="habit-empty">Complete your first workout day to start tracking your history.</div>`;
+  } else {
+    Object.keys(byWeek).sort().reverse().forEach(wk => {
+      const isCurrentWeek = wk === getWeekKey();
+      html += `<div class="habit-week-label">${isCurrentWeek ? 'This week' : wk.replace('-W', ' · Week ')}</div>`;
+      byWeek[wk].forEach(s => {
+        html += `
+          <div class="habit-session-card">
+            <div class="habit-session-left">
+              <div class="habit-session-day">${s.dayName}</div>
+              <div class="habit-session-focus">${s.focus}</div>
+            </div>
+            <div class="habit-session-phase" style="color:${PHASES[s.phaseIdx].accent}">Phase ${s.phaseIdx+1}</div>
+          </div>
+        `;
+      });
+    });
+  }
+
+  return html;
+}
+
 </script>
-</body>
-</html>
+
+<style>
+/* ===== TOPBAR EXTRAS ===== */
+.topbar-right { display: flex; align-items: center; gap: 10px; }
+.name-row {
+  display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+}
+.cal-badge {
+  font-size: 13px; font-weight: 600; color: #f39c12;
+  background: rgba(243,156,18,0.1); padding: 5px 10px; border-radius: 20px;
+  border: 1px solid rgba(243,156,18,0.25);
+}
+.settings-btn {
+  font-size: 20px; padding: 4px; background: none; border: none;
+  color: #666; cursor: pointer;
+}
+
+/* ===== SETTINGS MODAL ===== */
+.modal-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.7);
+  z-index: 200; display: flex; align-items: flex-end;
+}
+.modal {
+  background: #141414; width: 100%; border-radius: 20px 20px 0 0;
+  padding-bottom: env(safe-area-inset-bottom);
+  max-height: 85vh; overflow-y: auto;
+}
+.modal-header {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 20px 20px 0;
+}
+.modal-title { font-family: 'Archivo Black', sans-serif; font-size: 18px; }
+.modal-close { font-size: 24px; color: #666; padding: 4px 8px; }
+.modal-body { padding: 16px 20px 32px; }
+.modal-note { font-size: 12px; color: #555; margin-bottom: 20px; line-height: 1.5; }
+.setting-row {
+  margin-bottom: 18px;
+  display: flex; flex-direction: column; gap: 8px;
+}
+.setting-row label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; color: #888; }
+.setting-input {
+  background: #1e1e1e; border: 1px solid #2a2a2a; color: #f0ede8;
+  padding: 12px 14px; border-radius: 10px; font-size: 15px;
+  font-family: inherit; width: 100%; outline: none; flex: 1;
+}
+.input-with-unit { display: flex; gap: 10px; align-items: center; }
+.seg-control {
+  display: flex; border: 1px solid #2a2a2a; border-radius: 8px; overflow: hidden;
+}
+.seg-control.small .seg-btn { padding: 10px 12px; font-size: 12px; }
+.seg-btn {
+  padding: 12px 18px; font-size: 13px; font-weight: 500;
+  color: #555; background: transparent; border: none; cursor: pointer;
+  font-family: inherit;
+}
+.seg-btn.active { background: var(--accent); color: #fff; }
+.save-btn {
+  width: 100%; padding: 16px; border-radius: 14px;
+  background: var(--accent); color: #0a0a0a;
+  font-weight: 700; font-size: 14px; letter-spacing: 0.04em;
+  text-transform: uppercase; margin-top: 8px; cursor: pointer;
+  font-family: inherit;
+}
+
+/* ===== BOTTOM NAV ===== */
+.bottom-nav {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  display: flex;
+  border-top: 1px solid #1c1c1c;
+  background: #0a0a0a;
+  padding-bottom: env(safe-area-inset-bottom);
+  z-index: 50;
+}
+.bottom-nav button {
+  flex: 1;
+  padding: 12px 0;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #555;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+.bottom-nav button.active { color: var(--accent); }
+.bottom-nav button .nav-icon { font-size: 18px; }
+
+/* ===== HABIT TRACKER ===== */
+.habit-stats {
+  display: flex;
+  gap: 0;
+  border: 1px solid #1c1c1c;
+  border-radius: 14px;
+  overflow: hidden;
+  margin-bottom: 24px;
+}
+.habit-stat {
+  flex: 1;
+  padding: 18px 12px;
+  text-align: center;
+  border-right: 1px solid #1c1c1c;
+}
+.habit-stat:last-child { border-right: none; }
+.habit-stat-num {
+  font-family: 'Archivo Black', sans-serif;
+  font-size: 32px;
+  line-height: 1;
+}
+.habit-stat-label {
+  font-size: 10px;
+  color: #555;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-top: 4px;
+}
+.habit-week-label {
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #555;
+  margin: 20px 0 8px;
+}
+.habit-session-card {
+  border: 1px solid #1c1c1c;
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin-bottom: 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.habit-session-day {
+  font-size: 14px;
+  font-weight: 600;
+}
+.habit-session-focus {
+  font-size: 11px;
+  color: #666;
+  margin-top: 3px;
+}
+.habit-session-phase {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.habit-empty {
+  text-align: center;
+  padding: 60px 20px;
+  font-size: 14px;
+  color: #555;
+  line-height: 1.7;
+}
+</style>
