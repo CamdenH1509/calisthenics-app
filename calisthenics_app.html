@@ -690,6 +690,7 @@ const GETREADY_BREAK = 5;
 
 function startTimer(kind, seconds, exName, bilateral = false) {
   stopTimerInterval();
+  cancelScheduledChime();
   timerState = {
     kind,
     phase: 'getready',
@@ -703,6 +704,8 @@ function startTimer(kind, seconds, exName, bilateral = false) {
   };
   render();
   timerState.interval = setInterval(tick, 1000);
+  // Schedule first hold chime: getready + hold duration seconds from now
+  scheduleEndChime(GETREADY_BREAK + seconds);
 }
 
 function tick() {
@@ -718,32 +721,30 @@ function tick() {
       renderTimerOnly();
       return;
     }
-    // s === 0: countdown done, transition to next phase (no sound here)
+    // s === 0: countdown done, transition to next phase
     if (phase === 'getready') {
       timerState.phase = timerState.bilateral ? 'side1' : 'hold';
       timerState.seconds = timerState.holdDuration;
       timerState.total = timerState.holdDuration;
     } else {
-      // switch -> side2
       timerState.phase = 'side2';
       timerState.seconds = timerState.holdDuration;
       timerState.total = timerState.holdDuration;
     }
     renderTimerOnly();
+    // Pre-schedule chime for when this hold will end
+    scheduleEndChime(timerState.seconds);
     return;
   }
 
-  // During hold phases (hold, side1, side2, rest): just tick
+  // During hold phases: just tick down
   if (s > 0) {
     renderTimerOnly();
     return;
   }
 
-  // s === 0 in a hold phase: play chime and transition
-  playChime();
-
+  // s === 0 in a hold phase: transition
   if (phase === 'side1') {
-    // Start switch countdown
     timerState.phase = 'switch';
     timerState.seconds = SWITCH_BREAK;
     timerState.total = SWITCH_BREAK;
@@ -764,11 +765,41 @@ function tick() {
   render();
 }
 
+// Schedule chime using AudioContext clock — fires reliably even when JS timer drifts or iOS suspends setInterval
+let _scheduledChimeNode = null;
+function scheduleEndChime(secondsFromNow) {
+  try {
+    cancelScheduledChime();
+    const ctx = getAudioCtx();
+    const now = ctx.currentTime;
+    const fireAt = now + secondsFromNow;
+    const freqs = [[0, 660, 0.25], [0.18, 880, 0.2], [0.36, 1100, 0.15]];
+    freqs.forEach(([t, freq, vol]) => {
+      const o = ctx.createOscillator();
+      const g = ctx.createGain();
+      o.connect(g); g.connect(ctx.destination);
+      o.type = 'sine';
+      o.frequency.value = freq;
+      g.gain.setValueAtTime(0.001, fireAt + t);
+      g.gain.linearRampToValueAtTime(vol, fireAt + t + 0.02);
+      g.gain.exponentialRampToValueAtTime(0.001, fireAt + t + 0.6);
+      o.start(fireAt + t);
+      o.stop(fireAt + t + 0.7);
+      if (t === 0) _scheduledChimeNode = o;
+    });
+  } catch(e) {}
+}
+
+function cancelScheduledChime() {
+  try { if (_scheduledChimeNode) { _scheduledChimeNode.stop(); _scheduledChimeNode = null; } } catch(e) { _scheduledChimeNode = null; }
+}
+
 function stopTimerInterval() {
   if (timerState && timerState.interval) clearInterval(timerState.interval);
 }
 function closeTimer() {
   stopTimerInterval();
+  cancelScheduledChime();
   timerState = null;
   render();
 }
@@ -1064,20 +1095,28 @@ function attachTimerHandlers() {
     if (timerState.phase === 'getready') {
       timerState.seconds = GETREADY_BREAK;
       timerState.total = GETREADY_BREAK;
+      scheduleEndChime(GETREADY_BREAK + timerState.holdDuration);
     } else if (timerState.phase === 'side2') {
       timerState.seconds = timerState.holdDuration;
       timerState.total = timerState.holdDuration;
+      scheduleEndChime(timerState.holdDuration);
     } else if (timerState.phase === 'switch') {
       timerState.seconds = SWITCH_BREAK;
       timerState.total = SWITCH_BREAK;
+      scheduleEndChime(SWITCH_BREAK + timerState.holdDuration);
     } else {
       timerState.seconds = timerState.total;
+      scheduleEndChime(timerState.total);
     }
     renderTimerOnly();
   };
   document.getElementById('timerAdd').onclick = () => {
     timerState.seconds += 15;
     timerState.total += 15;
+    // Reschedule chime for the new end time
+    if (timerState.phase === 'hold' || timerState.phase === 'side1' || timerState.phase === 'side2') {
+      scheduleEndChime(timerState.seconds);
+    }
     renderTimerOnly();
   };
   document.getElementById('timerSkip').onclick = () => {
