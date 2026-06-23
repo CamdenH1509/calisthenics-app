@@ -558,29 +558,43 @@ function isBilateral(ex) {
   return haystack.includes('each side') || haystack.includes('each');
 }
 
+// Single shared AudioContext — iOS suspends it aggressively, so we resume before every sound
+let _audioCtx = null;
+function getAudioCtx() {
+  if (!_audioCtx) _audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  if (_audioCtx.state === 'suspended') _audioCtx.resume();
+  return _audioCtx;
+}
+
+// Keep audio context warm — resume on any user tap anywhere on screen
+document.addEventListener('touchstart', () => { if (_audioCtx && _audioCtx.state === 'suspended') _audioCtx.resume(); }, { passive: true });
+document.addEventListener('click', () => { if (_audioCtx && _audioCtx.state === 'suspended') _audioCtx.resume(); }, { passive: true });
+
 // Chime: three-tone ascending bell — plays when a hold/exercise SET completes
 function playChime() {
   try {
-    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const ctx = getAudioCtx();
+    const now = ctx.currentTime;
     [[0, 660, 0.25], [0.18, 880, 0.2], [0.36, 1100, 0.15]].forEach(([t, freq, vol]) => {
       const o = ctx.createOscillator();
       const g = ctx.createGain();
       o.connect(g); g.connect(ctx.destination);
       o.type = 'sine';
       o.frequency.value = freq;
-      g.gain.setValueAtTime(vol, ctx.currentTime + t);
-      g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + t + 0.6);
-      o.start(ctx.currentTime + t);
-      o.stop(ctx.currentTime + t + 0.7);
+      g.gain.setValueAtTime(vol, now + t);
+      g.gain.exponentialRampToValueAtTime(0.001, now + t + 0.6);
+      o.start(now + t);
+      o.stop(now + t + 0.7);
     });
     if (navigator.vibrate) navigator.vibrate([150, 80, 150]);
   } catch(e) {}
 }
 
-// Countdown beep — low for seconds 4-2, high for second 1 (last before transition)
+// Countdown beep — low for seconds 4-2, high for last second before transition
 function playCountdownBeep(secondsLeft) {
   try {
-    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const ctx = getAudioCtx();
+    const now = ctx.currentTime;
     const isLast = secondsLeft === 1;
     const freq = isLast ? 1200 : 400;
     const o = ctx.createOscillator();
@@ -588,10 +602,10 @@ function playCountdownBeep(secondsLeft) {
     o.connect(g); g.connect(ctx.destination);
     o.type = 'sine';
     o.frequency.value = freq;
-    g.gain.setValueAtTime(0.3, ctx.currentTime);
-    g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.15);
-    o.start(ctx.currentTime);
-    o.stop(ctx.currentTime + 0.18);
+    g.gain.setValueAtTime(0.3, now);
+    g.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
+    o.start(now);
+    o.stop(now + 0.18);
     if (isLast && navigator.vibrate) navigator.vibrate(80);
   } catch(e) {}
 }
@@ -599,7 +613,8 @@ function playCountdownBeep(secondsLeft) {
 // Fanfare: trumpet-like day completion sound
 function playFanfare() {
   try {
-    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const ctx = getAudioCtx();
+    const now = ctx.currentTime;
     const notes = [
       [0,    523, 0.3, 'square'],
       [0.12, 659, 0.3, 'square'],
@@ -614,10 +629,10 @@ function playFanfare() {
       o.connect(g); g.connect(ctx.destination);
       o.type = type;
       o.frequency.value = freq;
-      g.gain.setValueAtTime(vol * 0.3, ctx.currentTime + t);
-      g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + t + 0.25);
-      o.start(ctx.currentTime + t);
-      o.stop(ctx.currentTime + t + 0.3);
+      g.gain.setValueAtTime(vol * 0.3, now + t);
+      g.gain.exponentialRampToValueAtTime(0.001, now + t + 0.25);
+      o.start(now + t);
+      o.stop(now + t + 0.3);
     });
     if (navigator.vibrate) navigator.vibrate([100, 50, 100, 50, 200]);
   } catch(e) {}
