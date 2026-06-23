@@ -558,7 +558,7 @@ function isBilateral(ex) {
   return haystack.includes('each side') || haystack.includes('each');
 }
 
-// Chime: three-tone ascending bell (set completion / timer end)
+// Chime: three-tone ascending bell — plays when a hold/exercise SET completes
 function playChime() {
   try {
     const ctx = new (window.AudioContext || window.webkitAudioContext)();
@@ -574,6 +574,25 @@ function playChime() {
       o.stop(ctx.currentTime + t + 0.7);
     });
     if (navigator.vibrate) navigator.vibrate([150, 80, 150]);
+  } catch(e) {}
+}
+
+// Countdown beep — low for seconds 4-2, high for second 1 (last before transition)
+function playCountdownBeep(secondsLeft) {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const isLast = secondsLeft === 1;
+    const freq = isLast ? 1200 : 400;
+    const o = ctx.createOscillator();
+    const g = ctx.createGain();
+    o.connect(g); g.connect(ctx.destination);
+    o.type = 'sine';
+    o.frequency.value = freq;
+    g.gain.setValueAtTime(0.3, ctx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.15);
+    o.start(ctx.currentTime);
+    o.stop(ctx.currentTime + 0.18);
+    if (isLast && navigator.vibrate) navigator.vibrate(80);
   } catch(e) {}
 }
 
@@ -647,9 +666,10 @@ function launchConfetti() {
   requestAnimationFrame(draw);
 }
 
-// Timer phases for bilateral: 'side1' -> 'switch' -> 'side2' -> done
-// For unilateral: 'hold' -> done
-// For rest: 'rest' -> done
+// ===== TIMER PHASES =====
+// getready -> side1 -> switch -> side2 -> DONE  (bilateral)
+// getready -> hold -> DONE                       (unilateral)
+// rest -> DONE                                   (rest, no getready)
 const SWITCH_BREAK = 5;
 const GETREADY_BREAK = 5;
 
@@ -673,23 +693,42 @@ function startTimer(kind, seconds, exName, bilateral = false) {
 function tick() {
   if (!timerState || !timerState.running) return;
   timerState.seconds -= 1;
-  if (timerState.seconds > 0) { renderTimerOnly(); return; }
+  const s = timerState.seconds;
+  const phase = timerState.phase;
 
-  // Reached zero — what phase are we in?
-
-  if (timerState.phase === 'getready') {
-    // Transition into the actual hold (side1 if bilateral, hold if not)
-    playChime();
-    timerState.phase = timerState.bilateral ? 'side1' : (timerState.kind === 'rest' ? 'rest' : 'hold');
-    timerState.seconds = timerState.holdDuration;
-    timerState.total = timerState.holdDuration;
+  // During countdown phases (getready, switch): play beep on each second
+  if (phase === 'getready' || phase === 'switch') {
+    if (s > 0) {
+      playCountdownBeep(s);
+      renderTimerOnly();
+      return;
+    }
+    // s === 0: countdown done, transition to next phase (no sound here)
+    if (phase === 'getready') {
+      timerState.phase = timerState.bilateral ? 'side1' : 'hold';
+      timerState.seconds = timerState.holdDuration;
+      timerState.total = timerState.holdDuration;
+    } else {
+      // switch -> side2
+      timerState.phase = 'side2';
+      timerState.seconds = timerState.holdDuration;
+      timerState.total = timerState.holdDuration;
+    }
     renderTimerOnly();
     return;
   }
 
+  // During hold phases (hold, side1, side2, rest): just tick
+  if (s > 0) {
+    renderTimerOnly();
+    return;
+  }
+
+  // s === 0 in a hold phase: play chime and transition
   playChime();
 
-  if (timerState.phase === 'side1') {
+  if (phase === 'side1') {
+    // Start switch countdown
     timerState.phase = 'switch';
     timerState.seconds = SWITCH_BREAK;
     timerState.total = SWITCH_BREAK;
@@ -697,15 +736,7 @@ function tick() {
     return;
   }
 
-  if (timerState.phase === 'switch') {
-    timerState.phase = 'side2';
-    timerState.seconds = timerState.holdDuration;
-    timerState.total = timerState.holdDuration;
-    renderTimerOnly();
-    return;
-  }
-
-  // side2, hold, or rest — fully done
+  // hold, side2, or rest — fully done
   if (window._pendingTimerKey) {
     const wasComplete = dayCompletion(state.phase, state.day) >= 1;
     state.progress[window._pendingTimerKey] = true;
